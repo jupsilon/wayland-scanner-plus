@@ -17,4 +17,3 @@ add_custom_target(run
   COMMAND ./wayland-scanner-plus < weston-desktop-shell.xml
   DEPENDS wayland-scanner-plus
   )
-
