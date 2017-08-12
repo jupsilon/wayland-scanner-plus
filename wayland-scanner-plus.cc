@@ -3,25 +3,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <memory>
 #include <regex>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include <cxxabi.h>
-
-template <typename T>
-inline auto demangled_id = [](){
-  static auto enscope = [](char* buf) {
-    static auto deleter = [](char* p) { std::free(p); };
-    return std::unique_ptr<char, decltype (deleter)>(buf, deleter);
-  };
-  return std::string(enscope(abi::__cxa_demangle(typeid (T).name(),
-						 nullptr,
-						 nullptr,
-						 nullptr)).get());
-}();
+#include "utilities/misc.hpp"
 
 template <typename Children>
 inline void dump(Children const& children, size_t level = 0) {
@@ -107,6 +94,8 @@ int main() {
     std::cerr << "===================================" << std::endl;
 
     dump(tree.get_child(""));
+
+    std::cerr << utilities::demangled_id<decltype (tree)> << std::endl;
 
     return 0;
   }
