@@ -1,20 +1,45 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+#include <map>
 #include <sstream>
 #include <regex>
+
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include "utilities/misc.hpp"
 
-template <typename Children>
-inline void dump(Children const& children, size_t level = 0) {
-  static auto indent = [](size_t level) -> auto& {
-    for (auto i = level; i != 0; --i) std::cerr.put(' ');
-    return std::cerr;
+struct node : public std::map<std::string, node> {
+public:
+  node()
+    : parent(nullptr)
+  {
+  }
+
+  node(node* parent)
+    : parent(parent)
+  {
+  }
+
+  auto& operator += (node&& other) {
+    other.parent = this;
+    return *this;
+  }
+
+public:
+  std::map<std::string, std::string> attributes;
+
+private:
+  node* parent;
+};
+
+template <typename Ch, typename Node>
+inline void dump(std::basic_ostream<Ch>& output, Node const& children, size_t level = 0) {
+  auto indent = [&](size_t level) -> auto& {
+    for (auto i = level; i != 0; --i) output.put(' ');
+    return output;
   };
   for (auto child : children) {
     auto data = child.first.data();
@@ -29,7 +54,7 @@ inline void dump(Children const& children, size_t level = 0) {
       indent(level) << data << std::endl;
       auto value = child.second.template get_value<std::string>();
       if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
-	std::cerr << "{{{" << std::endl;
+	output << "{{{" << std::endl;
 	///indent(level) << value << std::endl;
 	std::istringstream stream(value);
 	while (stream) {
@@ -37,14 +62,29 @@ inline void dump(Children const& children, size_t level = 0) {
 	  std::getline(stream, line);
 	  auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
 	  if (choped.empty() == false) {
-	    std::cerr << choped << std::endl;
+	    output << choped << std::endl;
 	  }
 	}
-	std::cerr << "}}}" << std::endl;
+	output << "}}}" << std::endl;
       }
-      dump(child.second, level + 1);
+      dump(output, child.second, level + 1);
     }
   }
+}
+
+// template <typename Ch, typename Node>
+// inline auto& operator << (std::basic_ostream<Ch>& output, Node const& node) {
+//   dump(output, node, 0);
+//   return output;
+// }
+
+template <typename Node>
+inline bool operator == (char const* name, Node const& node) {
+  return 0 == std::strcmp(name, node.first.data());
+}
+template <typename Node>
+inline bool operator != (char const* name, Node const& node) {
+  return !(name == node);
 }
 
 int main() {
@@ -53,49 +93,19 @@ int main() {
     pt::ptree tree;
     pt::read_xml(std::cin, tree);
 
-    for (auto interface : tree.get_child("protocol.interface")) {
-      std::cerr << interface.first.data() << std::endl;
-    }
+    auto protocol = tree.get_child("protocol");
+    assert(!protocol.empty());
 
-    std::cerr << "===================================" << std::endl;
+    auto protocol_attrs = protocol.get_child("<xmlattr>");
+    assert(!protocol_attrs.empty());
+    auto protocol_name = protocol_attrs.find("name");
+    assert(protocol_name != protocol_attrs.not_found());
+    auto protocol_name_value = protocol_name->second.get_value<std::string>();
+    assert(!protocol_name_value.empty());
 
-    for (auto interface_attr : tree.get_child("protocol.interface.<xmlattr>")) {
-      std::string attr;
-      std::cerr << (attr = interface_attr.first.data()) << std::endl;
-      auto value = tree.get_optional<std::string>("protocol.interface.<xmlattr>." + attr);
-      if (value) {
-	std::cerr << "  " << value.get() << std::endl;
-      }
-    }
+    std::cerr << protocol_name_value << std::endl;
 
-    std::cerr << "===================================" << std::endl;
-
-    for (auto iter = tree.find(""); iter != tree.not_found(); ++iter) {
-      std::cerr << iter->first.data() << std::endl;
-    }
-
-    std::cerr << "===================================" << std::endl;
-
-    for (auto protocol : tree.get_child("protocol")) {
-      auto data = protocol.first.data();
-      std::cerr << data << std::endl;
-
-      for (auto interface : protocol.second.get_child("")) {
-	auto data = interface.first.data();
-
-	std::cerr << "  " << data << std::endl;
-	if (true || 0 == std::strcmp("description", data)) {
-	  std::cerr << "---------!!!--------" << std::endl;
-	  std::cerr << interface.second.get_value<std::string>();
-	}
-      }
-    }
-
-    std::cerr << "===================================" << std::endl;
-
-    dump(tree.get_child(""));
-
-    std::cerr << utilities::demangled_id<decltype (tree)> << std::endl;
+    std::cerr << protocol_attrs.get_child("").size() << std::endl;
 
     return 0;
   }
