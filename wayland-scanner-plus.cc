@@ -1,39 +1,48 @@
 
 #include <iostream>
 #include <string>
+#include <set>
+#include <vector>
 #include <map>
 #include <sstream>
 #include <regex>
-
+#include <tuple>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 #include "utilities/misc.hpp"
 
-struct node : public std::map<std::string, node> {
+template <typename T>
+using linked_ordered_set =
+  boost::multi_index::multi_index_container<
+    T,
+    boost::multi_index::indexed_by<
+      boost::multi_index::ordered_unique<
+        boost::multi_index::identity<T>>,
+      boost::multi_index::sequenced<>
+    >
+  >;
+
+/*
+template <typename ...Args>
+struct configuration :
+  public std::tuple<Args...>,
+  public linked_ordered_set<configuration<Args...>>
+{
+  using self_type = configuration;
+  using tuple_type = std::tuple<Args...>;
+  using container_type = linked_ordered_set<configuration>;
+
 public:
-  node()
-    : parent(nullptr)
-  {
+  friend bool operator < (configuration const& lhs, configuration const& rhs) {
+    return static_cast<tuple_type const&>(lhs) < static_cast<tuple_type const&>(rhs);
   }
-
-  node(node* parent)
-    : parent(parent)
-  {
-  }
-
-  auto& operator += (node&& other) {
-    other.parent = this;
-    return *this;
-  }
-
-public:
-  std::map<std::string, std::string> attributes;
-
-private:
-  node* parent;
 };
+*/
 
 template <typename Ch, typename Node>
 inline void dump(std::basic_ostream<Ch>& output, Node const& children, size_t level = 0) {
@@ -88,6 +97,31 @@ inline bool operator != (char const* name, Node const& node) {
 }
 
 int main() {
+  //   using configuration = configuration<
+  //   std::string, std::map<std::string, std::string>>;
+
+  // configuration a;
+  // for (int i = 0; i < 10; ++i) {
+  //   a.insert(a);
+  // }
+
+  // for (auto i : a) {
+  //   std::cerr << i.size() << std::endl;
+  // }
+
+  linked_ordered_set<int> v;
+
+  for (int i = 10; i != 0; --i) {
+    v.insert(i);
+  }
+
+  for (auto item : v) {
+    std::cerr << item << std::endl;
+  }
+  for (auto item : v.get<1>()) {
+    std::cerr << item << std::endl;
+  }
+
   try {
     namespace pt = boost::property_tree;
     pt::ptree tree;
