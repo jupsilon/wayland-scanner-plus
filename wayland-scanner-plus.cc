@@ -63,7 +63,7 @@ inline auto& operator << (std::basic_ostream<Ch>& output,
 }
 
 // <<< (WIP)
-#if 1
+#if 0
 template <typename Ch, typename K, typename V>
 inline auto& operator << (std::basic_ostream<Ch>& output, std::pair<K, V> const& pair) {
   output.put('(');
@@ -177,15 +177,109 @@ inline auto reconfigure(boost::property_tree::ptree const& tree)
 #endif
 // >>> (WIP)
 
+class configuration : std::vector<configuration>
+{
+  using ptree = boost::property_tree::ptree;
+
+public:
+  // configuration(ptree const& tree)
+  //   : data(tree.data()),
+  //     optional(tree.get_optional<std::string>(data) ?
+  // 	       tree.get_optional<std::string>(data).get() : "")
+  // {
+  //   for (auto const& child : tree) {
+  //     this->push_back(configuration(child.second));
+  //   }
+  // }
+  configuration(ptree const& tree)
+    : label(tree.data()),
+      value(),
+      texts()
+  {
+    for (auto const& child : tree) {
+      this->push_back(configuration(child.second));
+      auto value = tree.get_optional<std::string>(child.second.data());
+      if (value) {
+	this->value = value.get();
+      }
+    }
+  }
+
+public:
+  std::string label;
+  std::string value;
+  std::string texts;
+
+private:
+  template <typename Ch>
+  static void print(std::basic_ostream<Ch>& output, configuration const& self, size_t level) {
+    auto indent = [&]() -> auto& {
+      for (int i = 0; i < level; ++i) output.put(' ');
+      return output;
+    };
+
+    indent() << self.label << std::endl;
+    indent() << "{{{" << std::endl;
+    indent() << self.value << std::endl;
+    indent() << "}}}" << std::endl;
+    for (auto const& child : self) {
+      print(output, child, level+1);
+    }
+  }
+
+public:
+  template <typename Ch>
+  friend auto& operator << (std::basic_ostream<Ch>& output, configuration const& self) {
+    print(output, self, 0);
+    return output;
+  }
+};
+
+inline std::string chop(std::string const& value) {
+  if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
+    std::istringstream stream(value);
+    std::ostringstream output;
+    while (stream) {
+      std::string line;
+      std::getline(stream, line);
+      auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
+      if (choped.empty() == false) {
+	output << choped << std::endl;
+      }
+    }
+    return output.str();
+  }
+  return std::string();
+}
+
 int main() {
-  using configuration = configuration<std::string, std::map<std::string, std::string>>;
   namespace pt = boost::property_tree;
 
   try {
     pt::ptree root;
     pt::read_xml(std::cin, root);
 
-    std::cerr << reconfigure(root) << std::endl;
+    std::cerr << "-----" << std::endl;
+    std::cerr << utilities::demangled_id<decltype (root.get_child_optional("protocol.<xmlattr>").get())> << std::endl;
+    std::cerr << "-----" << std::endl;
+
+    auto attr = root.get_child("protocol.<xmlattr>");
+
+    std::cerr << attr.get_value<std::string>() << std::endl;
+    std::cerr << attr.get_child_optional("name").get() << std::endl;
+
+    for (auto item : attr) {
+      auto label = item.first.data();
+      auto value = attr.get_optional<std::string>(label);
+
+      std::cerr << label << ':' << value << std::endl;
+    }
+
+    std::cerr << "----------------" << std::endl;
+    std::cerr << attr.data() << std::endl;
+    std::cerr << "----------------" << std::endl;
+    std::cerr << attr.front().first.data() << std::endl;
+    std::cerr << "----------------" << std::endl;
 
     return 0;
   }
