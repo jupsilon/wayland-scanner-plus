@@ -11,6 +11,7 @@ add_executable(wayland-scanner-plus
   )
 
 target_link_libraries(wayland-scanner-plus
+  uuid
   )
 
 add_custom_target(run
