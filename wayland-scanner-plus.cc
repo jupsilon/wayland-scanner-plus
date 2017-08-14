@@ -28,13 +28,13 @@ inline auto dump(std::basic_ostream<Ch>& output,
     if (0 == std::strcmp("<xmlattr>", data)) {
       for (auto attr : child.second.get_child("")) {
 	auto label = attr.first.data();
-	auto value = child.second.template get_optional<std::string>(label).get();
+	auto value = child.second.get_optional<std::string>(label).get();
 	indent(level) << ":" << label << "=" << value << std::endl;
       }
     }
     else {
       indent(level) << data << std::endl;
-      auto value = child.second.template get_value<std::string>();
+      auto value = child.second.get_value<std::string>();
       if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
 	output << "{{{" << std::endl;
 	///indent(level) << value << std::endl;
@@ -62,8 +62,8 @@ inline auto& operator << (std::basic_ostream<Ch>& output,
   return dump(output, node, 0);
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
+// <<< (WIP)
+#if 1
 template <typename Ch, typename K, typename V>
 inline auto& operator << (std::basic_ostream<Ch>& output, std::pair<K, V> const& pair) {
   output.put('(');
@@ -89,25 +89,28 @@ inline auto& operator << (std::basic_ostream<Ch>& output, std::map<K, V, A> cons
   return output;
 }
 
-template <typename Ch, typename Tuple, size_t... I>
-inline auto& print(std::basic_ostream<Ch>& output,
-	   Tuple const& tpl,
-	   std::index_sequence<I...>)
+namespace details
 {
-  output.put('(');
-  (..., (output << (I == 0 ? "" : " ") << std::get<I>(tpl)));
-  output.put(')');
-  return output;
-}
+  template <typename Ch, typename Tuple, size_t... I>
+  inline auto& print(std::basic_ostream<Ch>& output,
+		     Tuple const& tpl,
+		     std::index_sequence<I...>)
+  {
+    output.put('[');
+    (..., (output << (I == 0 ? "" : " ") << std::get<I>(tpl)));
+    output.put(']');
+    return output;
+  }
 
-template <typename Ch, typename... T>
-inline auto& print(std::basic_ostream<Ch>& output, std::tuple<T...> const& tpl) {
-  return print(output, tpl, std::make_index_sequence<sizeof... (T)>());
+  template <typename Ch, typename... T>
+  inline auto& print(std::basic_ostream<Ch>& output, std::tuple<T...> const& tpl) {
+    return print(output, tpl, std::make_index_sequence<sizeof... (T)>());
+  }
 }
 
 template <typename Ch, typename... T>
 inline auto& operator << (std::basic_ostream<Ch>& output, std::tuple<T...> const& tpl) {
-  return print(output, tpl);
+  return details::print(output, tpl);
 }
 
 template <typename ...Args>
@@ -119,7 +122,9 @@ struct configuration : public std::tuple<Args...>,
   using sequence_type = std::vector<configuration<Args...>>;
 
 public:
+  auto&       data()           { return static_cast<data_type&>          (*this); }
   auto const& data()     const { return static_cast<data_type const&>    (*this); }
+  auto&       sequence()       { return static_cast<sequence_type&>      (*this); }
   auto const& sequence() const { return static_cast<sequence_type const&>(*this); }
 
 public:
@@ -145,19 +150,42 @@ public:
   }
 };
 
-int main() {
+inline auto reconfigure(boost::property_tree::ptree const& tree)
+  -> configuration<std::string, std::map<std::string, std::string>>
+{
   using configuration = configuration<std::string, std::map<std::string, std::string>>;
 
+  configuration conf;
+
+  for (auto const& child : tree) {
+    auto data = child.first.data();
+    // if (0 == std::strcmp("<xmlattr>", data)) {
+    //   for (auto const& attr : child.second.get_child("")) {
+    //   	auto label = attr.first.data();
+    // 	auto value = child.second.template get_optional<std::string>(label).get();
+	
+    // 	indent(level) << ":" << label << "=" << value << std::endl;
+
+    auto child_conf = reconfigure(child.second);
+    std::get<0>(child_conf.data()) = child.first.data();
+
+    conf.push_back(child_conf);
+  }
+
+  return conf;
+}
+#endif
+// >>> (WIP)
+
+int main() {
+  using configuration = configuration<std::string, std::map<std::string, std::string>>;
+  namespace pt = boost::property_tree;
+
   try {
-    namespace pt = boost::property_tree;
-    pt::ptree tree;
-    pt::read_xml(std::cin, tree);
+    pt::ptree root;
+    pt::read_xml(std::cin, root);
 
-    auto root = tree.get_child("");
-
-    std::cerr << utilities::demangled_id<decltype (root)> << std::endl;
-
-    std::cerr << root << std::endl;
+    std::cerr << reconfigure(root) << std::endl;
 
     return 0;
   }
