@@ -1,7 +1,6 @@
 
 #include <iostream>
 #include <string>
-#include <set>
 #include <vector>
 #include <map>
 #include <sstream>
@@ -10,42 +9,16 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index/ordered_index.hpp>
 
 #include "utilities/misc.hpp"
 
-template <typename T>
-using linked_ordered_set =
-  boost::multi_index::multi_index_container<
-    T,
-    boost::multi_index::indexed_by<
-      boost::multi_index::ordered_unique<
-        boost::multi_index::identity<T>>,
-      boost::multi_index::sequenced<>
-    >
-  >;
 
-/*
-template <typename ...Args>
-struct configuration :
-  public std::tuple<Args...>,
-  public linked_ordered_set<configuration<Args...>>
+template <typename Ch>
+inline auto dump(std::basic_ostream<Ch>& output,
+		 boost::property_tree::ptree const& children,
+		 size_t level = 0)
+  -> std::basic_ostream<Ch>&
 {
-  using self_type = configuration;
-  using tuple_type = std::tuple<Args...>;
-  using container_type = linked_ordered_set<configuration>;
-
-public:
-  friend bool operator < (configuration const& lhs, configuration const& rhs) {
-    return static_cast<tuple_type const&>(lhs) < static_cast<tuple_type const&>(rhs);
-  }
-};
-*/
-
-template <typename Ch, typename Node>
-inline void dump(std::basic_ostream<Ch>& output, Node const& children, size_t level = 0) {
   auto indent = [&](size_t level) -> auto& {
     for (auto i = level; i != 0; --i) output.put(' ');
     return output;
@@ -79,67 +52,112 @@ inline void dump(std::basic_ostream<Ch>& output, Node const& children, size_t le
       dump(output, child.second, level + 1);
     }
   }
+  return output;
 }
 
-// template <typename Ch, typename Node>
-// inline auto& operator << (std::basic_ostream<Ch>& output, Node const& node) {
-//   dump(output, node, 0);
-//   return output;
-// }
+template <typename Ch>
+inline auto& operator << (std::basic_ostream<Ch>& output,
+			  boost::property_tree::ptree const& node)
+{
+  return dump(output, node, 0);
+}
 
-template <typename Node>
-inline bool operator == (char const* name, Node const& node) {
-  return 0 == std::strcmp(name, node.first.data());
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename Ch, typename K, typename V>
+inline auto& operator << (std::basic_ostream<Ch>& output, std::pair<K, V> const& pair) {
+  output.put('(');
+  output << pair.first << " . " << pair.second;
+  output.put(')');
+  return output;
 }
-template <typename Node>
-inline bool operator != (char const* name, Node const& node) {
-  return !(name == node);
+
+template <typename Ch, typename K, typename V, typename A>
+inline auto& operator << (std::basic_ostream<Ch>& output, std::map<K, V, A> const& assoc) {
+  output.put('(');
+  int i = 0;
+  for (auto const& pair : assoc) {
+    if (0 == i) {
+      ++i;
+    }
+    else {
+      output.put(' ');
+    }
+    output << pair;
+  }
+  output.put(')');
+  return output;
 }
+
+template <typename Ch, typename Tuple, size_t... I>
+inline auto& print(std::basic_ostream<Ch>& output,
+	   Tuple const& tpl,
+	   std::index_sequence<I...>)
+{
+  output.put('(');
+  (..., (output << (I == 0 ? "" : " ") << std::get<I>(tpl)));
+  output.put(')');
+  return output;
+}
+
+template <typename Ch, typename... T>
+inline auto& print(std::basic_ostream<Ch>& output, std::tuple<T...> const& tpl) {
+  return print(output, tpl, std::make_index_sequence<sizeof... (T)>());
+}
+
+template <typename Ch, typename... T>
+inline auto& operator << (std::basic_ostream<Ch>& output, std::tuple<T...> const& tpl) {
+  return print(output, tpl);
+}
+
+template <typename ...Args>
+struct configuration : public std::tuple<Args...>,
+		       public std::vector<configuration<Args...>>
+{
+  using self_type = configuration;
+  using data_type = std::tuple<Args...>;
+  using sequence_type = std::vector<configuration<Args...>>;
+
+public:
+  auto const& data()     const { return static_cast<data_type const&>    (*this); }
+  auto const& sequence() const { return static_cast<sequence_type const&>(*this); }
+
+public:
+  friend bool operator < (configuration const& lhs, configuration const& rhs) {
+    return static_cast<data_type const&>(lhs) < static_cast<data_type const&>(rhs);
+  }
+
+private:
+  template <typename Ch>
+  static void print(std::basic_ostream<Ch>& output, configuration const& self, size_t level) {
+    for (int i = 0; i < level; ++i) output.put(' ');
+    output << self.data() << std::endl;
+    for (auto const& child : self.sequence()) {
+      print(output, child, 1+level);
+    }
+  }
+
+public:
+  template <typename Ch>
+  friend auto& operator << (std::basic_ostream<Ch>& output, configuration const& self) {
+    print(output, self, 0);
+    return output;
+  }
+};
 
 int main() {
-  //   using configuration = configuration<
-  //   std::string, std::map<std::string, std::string>>;
-
-  // configuration a;
-  // for (int i = 0; i < 10; ++i) {
-  //   a.insert(a);
-  // }
-
-  // for (auto i : a) {
-  //   std::cerr << i.size() << std::endl;
-  // }
-
-  linked_ordered_set<int> v;
-
-  for (int i = 10; i != 0; --i) {
-    v.insert(i);
-  }
-
-  for (auto item : v) {
-    std::cerr << item << std::endl;
-  }
-  for (auto item : v.get<1>()) {
-    std::cerr << item << std::endl;
-  }
+  using configuration = configuration<std::string, std::map<std::string, std::string>>;
 
   try {
     namespace pt = boost::property_tree;
     pt::ptree tree;
     pt::read_xml(std::cin, tree);
 
-    auto protocol = tree.get_child("protocol");
-    assert(!protocol.empty());
+    auto root = tree.get_child("");
 
-    auto protocol_attrs = protocol.get_child("<xmlattr>");
-    assert(!protocol_attrs.empty());
-    auto protocol_name = protocol_attrs.find("name");
-    assert(protocol_name != protocol_attrs.not_found());
-    auto protocol_name_value = protocol_name->second.get_value<std::string>();
-    assert(!protocol_name_value.empty());
+    std::cerr << utilities::demangled_id<decltype (root)> << std::endl;
 
-    std::cerr << protocol_name_value << std::endl;
-
-    std::cerr << protocol_attrs.get_child("").size() << std::endl;
+    std::cerr << root << std::endl;
 
     return 0;
   }
