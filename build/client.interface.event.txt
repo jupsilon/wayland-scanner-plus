@@ -1,0 +1,1 @@
+    std::function<void ($(EVENT_ARGS))> $(EVENT_NAME);

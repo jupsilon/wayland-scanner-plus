@@ -1,8 +1,46 @@
 #ifndef INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 #define INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 
+namespace details // WIP
+{
+  class proxy {
+  public:
+    virtual ~proxy() { }
+  };
+
+  template <typename WL_C_STRUCT, size_t VERSION>
+  class interface_core : public proxy {
+  public:
+    interface_core(WL_C_STRUCT* pointer)
+      : pointer(pointer)
+    {
+    }
+
+    interface_core(interface_core&& other)
+      : pointer(other.pointer)
+    {
+    }
+
+    interface_core(interface_core const&) = delete;
+    interface_core& operator = (interface_core const&) = delete;
+
+    ~interface_core() override {
+      // should be overrided by "protocol destructor" (WIP)
+      if (this->pointer) {
+	wl_proxy_destroy(reinterpret_cast<wl_proxy*>(this->pointer));
+      }
+    }
+    operator WL_C_STRUCT*() const { return this->pointer; }
+
+  protected:
+    WL_C_STRUCT* pointer;
+  };
+}
+
 namespace $(PROTOCOL_NAME)_client
 {
+  using namespace details;
+
 $(INTERFACES)
 }
 

@@ -1,6 +1,6 @@
   class $(INTERFACE_NAME)_t : public interface_core<$(INTERFACE_NAME), $(INTERFACE_VERSION)> {
   public:
-    using core_type = interface_core<$(INTERFACE_NAME)>;
+    using core_type = interface_core<$(INTERFACE_NAME), $(INTERFACE_VERSION)>;
 
   public:
     $(INTERFACE_NAME)_t($(INTERFACE_NAME)* src)

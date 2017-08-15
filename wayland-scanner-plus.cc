@@ -74,9 +74,9 @@ inline std::string chop(std::string const& value) {
     while (stream) {
       std::string line;
       std::getline(stream, line);
-      auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
-      if (choped.empty() == false) {
-	output << choped << std::endl;
+      auto chopped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
+      if (chopped.empty() == false) {
+	output << chopped << std::endl;
       }
     }
     return output.str();
@@ -129,6 +129,7 @@ int main() {
     static auto const client_interface         = load_template("client.interface.txt");
     static auto const client_interface_enum    = load_template("client.interface.enum.txt");
     static auto const client_interface_request = load_template("client.interface.request.txt");
+    static auto const client_interface_event   = load_template("client.interface.event.txt");
 
     //
     // code generators
@@ -158,18 +159,38 @@ int main() {
       return text;
     };
 
-    static auto request_arg = [](ptree const& tree) {
-      auto arg_type = attr(tree, "type");
-      auto arg_name = attr(tree, "name");
+    static auto request_param = [](ptree const& tree) {
+      auto param_type = attr(tree, "type");
+      auto param_name = attr(tree, "name");
 
-      if ("new_id" == arg_type) {
+      if ("new_id" == param_type) {
 	return std::string();
       }
-      else if ("object" == arg_type) {
-	arg_type = attr(tree, "interface") + "*";
+      else if ("object" == param_type) {
+	param_type = attr(tree, "interface") + "*";
+      }
+      else if ("int" == param_type) {
+	param_type = "int32_t";
+      }
+      else if ("uint" == param_type) {
+	param_type = "uint32_t";
+      }
+      else if ("string" == param_type) {
+	param_type = "char const*";
+      }
+      else if ("fd" == param_type) {
+	param_type = "int";
+      }
+      else {
+	assert(!"not supported.");
       }
 
-      return concat(arg_type, " ", arg_name, ", ");
+      return concat(param_type, " ", param_name, ", ");
+    };
+
+    static auto request_arg = [](ptree const& tree) {
+      auto arg_name = attr(tree, "name");
+      return concat(arg_name, ", ");
     };
 
     static auto request = [](ptree const& tree, std::string interface_name) {
@@ -179,21 +200,76 @@ int main() {
       text = subst(text, "REQUEST_NAME", request_name);
 
       std::string request_result = "void";
-      std::string request_args;
+      std::string request_params;               //<! types and formal parameters,
+      std::string request_args = "pointer, ";   //<! actual arguments
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "arg")) {
 	  if (attr(child.second, "type") == "new_id") {
 	    request_result = attr(child.second, "interface");
 	    if (request_result == "nil") {
-	      request_result = "void"; // e.g., wl_registry_bind
+	      request_result = "void"; // e.g., wl_registry.bind (W.I.P.: needs special params)
 	    }
 	    request_result.push_back('*');
 	  }
+	  request_params += request_param(child.second);
 	  request_args += request_arg(child.second);
 	}
       }
       text = subst(text, "REQUEST_RESULT", request_result);
+      text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
       text = subst(text, "REQUEST_ARGS", trim_last<2>(request_args));
+      text = subst(text, "INTERFACE_NAME", interface_name);
+
+      return text;
+    };
+
+    static auto event_arg = [](ptree const& tree) {
+      auto arg_type = attr(tree, "type");
+
+      if ("new_id" == arg_type) {
+	return std::string();
+      }
+      else if ("object" == arg_type) {
+	arg_type = attr(tree, "interface") + "*";
+      }
+      else if ("int" == arg_type) {
+	arg_type = "int32_t";
+      }
+      else if ("uint" == arg_type) {
+	arg_type = "uint32_t";
+      }
+      else if ("string" == arg_type) {
+	arg_type = "char const*";
+      }
+      else if ("fd" == arg_type) {
+	arg_type = "int";
+      }
+      else if ("fixed" == arg_type) {
+	arg_type = "fixed";
+      }
+      else if ("array" == arg_type) {
+	arg_type = "chunk";
+      }
+      else {
+	std::cerr << "----------" << arg_type << std::endl;
+	assert(!"not supported.");
+      }
+      return arg_type + ", ";
+    };
+
+    static auto event = [](ptree const& tree) {
+      auto text = client_interface_event;
+      auto event_name = attr(tree, "name");
+
+      text = subst(text, "EVENT_NAME", event_name);
+
+      std::string event_args;
+      for (auto const& child : tree.get_child("")) {
+	if (0 == std::strcmp(child.first.data(), "arg")) {
+	  event_args += event_arg(child.second);
+	}
+      }
+      text = subst(text, "EVENT_ARGS", trim_last<2>(event_args));
 
       return text;
     };
@@ -213,6 +289,9 @@ int main() {
 	}
 	else if (0 == std::strcmp(child.first.data(), "request")) {
 	  interface_members += request(child.second, interface_name);
+	}
+	else if (0 == std::strcmp(child.first.data(), "event")) {
+	  interface_members += event(child.second);
 	}
       }
       text = subst(text, "INTERFACE_MEMBERS", trim_last(interface_members));
@@ -243,7 +322,7 @@ int main() {
     read_xml(std::cin, root);
 
     std::cout << protocol(root.get_child("protocol"));
-    std::ofstream("output.txt") << protocol(root.get_child("protocol"));
+    std::ofstream("output.hpp") << protocol(root.get_child("protocol"));
 
     return 0;
   }
