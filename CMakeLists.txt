@@ -15,7 +15,8 @@ target_link_libraries(wayland-scanner-plus
   )
 
 add_custom_target(run
-  COMMAND ./wayland-scanner-plus < weston-desktop-shell.xml
+  #  COMMAND ./wayland-scanner-plus < weston-desktop-shell.xml
+  COMMAND ./wayland-scanner-plus < wayland.xml
   DEPENDS wayland-scanner-plus
   )
 

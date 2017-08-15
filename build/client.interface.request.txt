@@ -1,0 +1,3 @@
+    $(REQUEST_RESULT) $(REQUEST_NAME)($(REQUEST_ARGS))
+    {
+    }

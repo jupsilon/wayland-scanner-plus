@@ -1,0 +1,20 @@
+  class $(INTERFACE_NAME)_t : public interface_core<$(INTERFACE_NAME), $(INTERFACE_VERSION)> {
+  public:
+    using core_type = interface_core<$(INTERFACE_NAME)>;
+
+  public:
+    $(INTERFACE_NAME)_t($(INTERFACE_NAME)* src)
+      : core_type(src)
+    {
+    }
+    $(INTERFACE_NAME)_t($(INTERFACE_NAME)_t&& other)
+      : core_type(std::move(other))
+    {
+    }
+    ~$(INTERFACE_NAME)_t() override
+    {
+    }
+
+  public:
+$(INTERFACE_MEMBERS)
+  };

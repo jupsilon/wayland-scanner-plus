@@ -59,6 +59,14 @@ inline auto dump(std::basic_ostream<Ch>& output,
   return output;
 }
 
+inline auto concat() {
+  return std::string();
+}
+template <typename First, typename ...Rest>
+inline auto concat(First first, Rest... rest) {
+  return first + concat(rest...);
+}
+
 inline std::string chop(std::string const& value) {
   if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
     std::istringstream stream(value);
@@ -76,11 +84,10 @@ inline std::string chop(std::string const& value) {
   return std::string();
 }
 
-inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
-  return tree.get_child("<xmlattr>").get_optional<std::string>(key).get();
+template <size_t N = 1>
+inline std::string trim_last(std::string src) {
+  return src.substr(0, src.size() - N);
 }
-
-namespace pt = boost::property_tree;
 
 inline std::string upper(std::string src) {
   std::transform(src.begin(), src.end(), src.begin(), [](auto ch) { return std::toupper(ch); });
@@ -89,6 +96,11 @@ inline std::string upper(std::string src) {
 
 inline std::string subst(std::string source, std::string label, std::string value) {
   return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
+}
+
+inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
+  return tree.get_child("<xmlattr>").get_optional<std::string>(key) ?
+    tree.get_child("<xmlattr>").get_optional<std::string>(key).get() : "nil";
 }
 
 inline std::string uuid() {
@@ -102,52 +114,141 @@ inline std::string uuid() {
 
 std::string load_template(char const* filename) {
   std::ifstream input(filename, std::ios::in);
+  std::cerr << "loading template: " << filename << std::endl;
   assert(input.is_open());
+  std::cerr << "done." << std::endl;
   return std::string(std::istreambuf_iterator<char>(input),
 		     std::istreambuf_iterator<char>());
 }
 
-int main() {
+int main() { 
+  using boost::property_tree::ptree;
+
   try {
-    auto client_header           = load_template("client_header.txt");
-    auto client_header_interface = load_template("client_header.interface.txt");
+    static auto const client                   = load_template("client.txt");
+    static auto const client_interface         = load_template("client.interface.txt");
+    static auto const client_interface_enum    = load_template("client.interface.enum.txt");
+    static auto const client_interface_request = load_template("client.interface.request.txt");
 
-    pt::ptree root;
-    pt::read_xml(std::cin, root);
+    //
+    // code generators
+    //
+    static auto enum_entry = [](ptree const& tree) {
+      return concat("      ",
+		    attr(tree, "name"),
+		    " = ",
+		    upper(attr(tree, "value")),
+		    ",\n");
+    };
 
-    auto protocol = root.get_child("protocol");
-    auto protocol_name = attr(protocol, "name");
+    static auto enumeration = [](ptree const& tree) {
+      auto text = client_interface_enum;
+      auto enum_name = attr(tree, "name");
 
-    std::string interfaces;
-    for (auto const& interface : protocol.get_child("")) {
-      if (0 == std::strcmp("interface", interface.first.data())) {
-	auto interface_name = attr(interface.second, "name");
-	auto interface_version = attr(interface.second, "version");
+      text = subst(text, "ENUM_NAME",   enum_name);
 
-	auto text = client_header_interface;
-	text = subst(text, "INTERFACE_NAME", interface_name);
-	text = subst(text, "INTERFACE_VERSION", interface_version);
-
-	dump(std::cerr, interface.second);
-	std::cerr << "-------------------" << std::endl;
-
-	interfaces += text;
+      std::string enum_entries;
+      for (auto const& child : tree.get_child("")) {
+	if (0 == std::strcmp(child.first.data(), "entry")) {
+	  enum_entries += enum_entry(child.second);
+	}
       }
-    }
+      text = subst(text, "ENUM_ENTRIES", trim_last(enum_entries));
 
-    client_header = subst(client_header, "PROTOCOL_NAME", protocol_name);
-    client_header = subst(client_header, "CAP_PROTOCOL_NAME", upper(protocol_name));
-    client_header = subst(client_header, "UUID", uuid());
-    client_header = subst(client_header, "INTERFACES", interfaces);
+      return text;
+    };
 
-    std::cerr << "============================================" << std::endl;
-    std::cerr << client_header;
-    std::cerr << "============================================" << std::endl;
+    static auto request_arg = [](ptree const& tree) {
+      auto arg_type = attr(tree, "type");
+      auto arg_name = attr(tree, "name");
+
+      if ("new_id" == arg_type) {
+	return std::string();
+      }
+      else if ("object" == arg_type) {
+	arg_type = attr(tree, "interface") + "*";
+      }
+
+      return concat(arg_type, " ", arg_name, ", ");
+    };
+
+    static auto request = [](ptree const& tree, std::string interface_name) {
+      auto text = client_interface_request;
+      auto request_name = attr(tree, "name");
+
+      text = subst(text, "REQUEST_NAME", request_name);
+
+      std::string request_result = "void";
+      std::string request_args;
+      for (auto const& child : tree.get_child("")) {
+	if (0 == std::strcmp(child.first.data(), "arg")) {
+	  if (attr(child.second, "type") == "new_id") {
+	    request_result = attr(child.second, "interface");
+	    if (request_result == "nil") {
+	      request_result = "void"; // e.g., wl_registry_bind
+	    }
+	    request_result.push_back('*');
+	  }
+	  request_args += request_arg(child.second);
+	}
+      }
+      text = subst(text, "REQUEST_RESULT", request_result);
+      text = subst(text, "REQUEST_ARGS", trim_last<2>(request_args));
+
+      return text;
+    };
+    
+    static auto interface = [](ptree const& tree) {
+      auto text = client_interface;
+      auto interface_name    = attr(tree, "name");
+      auto interface_version = attr(tree, "version");
+
+      text = subst(text, "INTERFACE_NAME",    interface_name);
+      text = subst(text, "INTERFACE_VERSION", interface_version);
+
+      std::string interface_members;
+      for (auto const& child : tree.get_child("")) {
+	if (0 == std::strcmp(child.first.data(), "enum")) {
+	  interface_members += enumeration(child.second);
+	}
+	else if (0 == std::strcmp(child.first.data(), "request")) {
+	  interface_members += request(child.second, interface_name);
+	}
+      }
+      text = subst(text, "INTERFACE_MEMBERS", trim_last(interface_members));
+
+      return text;
+    };
+
+    static auto protocol = [](ptree const& tree) {
+      auto text = client;
+      auto protocol_name = attr(tree, "name");
+
+      text = subst(text, "PROTOCOL_NAME", protocol_name);
+      text = subst(text, "CAP_PROTOCOL_NAME", upper(protocol_name));
+      text = subst(text, "UUID", uuid());
+
+      std::string interfaces;
+      for (auto const& child : tree.get_child("")) {
+	if (0 == std::strcmp(child.first.data(), "interface")) {
+	  interfaces += interface(child.second);
+	}
+      }
+      text = subst(text, "INTERFACES", trim_last(interfaces));
+
+      return text;
+    };
+
+    ptree root;
+    read_xml(std::cin, root);
+
+    std::cout << protocol(root.get_child("protocol"));
+    std::ofstream("output.txt") << protocol(root.get_child("protocol"));
 
     return 0;
   }
   catch (std::exception& ex) {
     std::cerr << ex.what() << std::endl;
   }
-  return 0; // handled
+  return -1;
 }
