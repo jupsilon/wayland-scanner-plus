@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WAYLAND_CLIENT_HPP_5FDCC81D_D731_4C1A_AAA7_4F37C78BD3E4
-#define INCLUDE_WAYLAND_CLIENT_HPP_5FDCC81D_D731_4C1A_AAA7_4F37C78BD3E4
+#ifndef INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A
+#define INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A
 
 namespace details // WIP
 {
@@ -61,11 +61,11 @@ namespace wayland_client
   public:
     wl_callback* sync()
     {
-      return wl_display_sync(pointer, callback);
+      return wl_display_sync(pointer);
     }
     wl_registry* get_registry()
     {
-      return wl_display_get_registry(pointer, registry);
+      return wl_display_get_registry(pointer);
     }
     std::function<void (nil*, uint32_t, char const*)> error;
     enum class error : uint32_t {
@@ -95,7 +95,7 @@ namespace wayland_client
   public:
     void* bind(uint32_t name)
     {
-      return wl_registry_bind(pointer, name, id);
+      return wl_registry_bind(pointer, name);
     }
     std::function<void (uint32_t, char const*, uint32_t)> global;
     std::function<void (uint32_t)> global_remove;
@@ -140,11 +140,11 @@ namespace wayland_client
   public:
     wl_surface* create_surface()
     {
-      return wl_compositor_create_surface(pointer, id);
+      return wl_compositor_create_surface(pointer);
     }
     wl_region* create_region()
     {
-      return wl_compositor_create_region(pointer, id);
+      return wl_compositor_create_region(pointer);
     }
   };
   class wl_shm_pool_t : public interface_core<wl_shm_pool, 1> {
@@ -167,7 +167,7 @@ namespace wayland_client
   public:
     wl_buffer* create_buffer(int32_t offset, int32_t width, int32_t height, int32_t stride, uint32_t format)
     {
-      return wl_shm_pool_create_buffer(pointer, id, offset, width, height, stride, format);
+      return wl_shm_pool_create_buffer(pointer, offset, width, height, stride, format);
     }
     void destroy()
     {
@@ -263,7 +263,7 @@ namespace wayland_client
     };
     wl_shm_pool* create_pool(int fd, int32_t size)
     {
-      return wl_shm_create_pool(pointer, id, fd, size);
+      return wl_shm_create_pool(pointer, fd, size);
     }
     std::function<void (uint32_t)> format;
   };
@@ -440,11 +440,11 @@ namespace wayland_client
   public:
     wl_data_source* create_data_source()
     {
-      return wl_data_device_manager_create_data_source(pointer, id);
+      return wl_data_device_manager_create_data_source(pointer);
     }
     wl_data_device* get_data_device(wl_seat* seat)
     {
-      return wl_data_device_manager_get_data_device(pointer, id, seat);
+      return wl_data_device_manager_get_data_device(pointer, seat);
     }
     enum class dnd_action : uint32_t {
       none = 0,
@@ -476,7 +476,7 @@ namespace wayland_client
     };
     wl_shell_surface* get_shell_surface(wl_surface* surface)
     {
-      return wl_shell_get_shell_surface(pointer, id, surface);
+      return wl_shell_get_shell_surface(pointer, surface);
     }
   };
   class wl_shell_surface_t : public interface_core<wl_shell_surface, 1> {
@@ -597,7 +597,7 @@ namespace wayland_client
     }
     wl_callback* frame()
     {
-      return wl_surface_frame(pointer, callback);
+      return wl_surface_frame(pointer);
     }
     void set_opaque_region(wl_region* region)
     {
@@ -652,15 +652,15 @@ namespace wayland_client
     std::function<void (uint32_t)> capabilities;
     wl_pointer* get_pointer()
     {
-      return wl_seat_get_pointer(pointer, id);
+      return wl_seat_get_pointer(pointer);
     }
     wl_keyboard* get_keyboard()
     {
-      return wl_seat_get_keyboard(pointer, id);
+      return wl_seat_get_keyboard(pointer);
     }
     wl_touch* get_touch()
     {
-      return wl_seat_get_touch(pointer, id);
+      return wl_seat_get_touch(pointer);
     }
     std::function<void (char const*)> name;
     void release()
@@ -895,7 +895,7 @@ namespace wayland_client
     };
     wl_subsurface* get_subsurface(wl_surface* surface, wl_surface* parent)
     {
-      return wl_subcompositor_get_subsurface(pointer, id, surface, parent);
+      return wl_subcompositor_get_subsurface(pointer, surface, parent);
     }
   };
   class wl_subsurface_t : public interface_core<wl_subsurface, 1> {
@@ -946,4 +946,4 @@ namespace wayland_client
   };
 }
 
-#endif/*INCLUDE_WAYLAND_CLIENT_HPP_5FDCC81D_D731_4C1A_AAA7_4F37C78BD3E4*/
+#endif/*INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A*/

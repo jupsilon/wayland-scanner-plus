@@ -164,6 +164,7 @@ int main() {
       auto param_name = attr(tree, "name");
 
       if ("new_id" == param_type) {
+	assert(!"never occurs");
 	return std::string();
       }
       else if ("object" == param_type) {
@@ -211,8 +212,10 @@ int main() {
 	    }
 	    request_result.push_back('*');
 	  }
-	  request_params += request_param(child.second);
-	  request_args += request_arg(child.second);
+	  else {
+	    request_args += request_arg(child.second);
+	    request_params += request_param(child.second);
+	  }
 	}
       }
       text = subst(text, "REQUEST_RESULT", request_result);
