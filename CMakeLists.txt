@@ -10,13 +10,21 @@ add_executable(wayland-scanner-plus
   wayland-scanner-plus.cc
   )
 
+add_custom_target(wayland-client.hpp
+  COMMAND ./wayland-scanner-plus < wayland.xml > ../wayland-client.hpp
+  DEPENDS wayland-scanner-plus
+  )
+
+add_executable(test-client
+  test-client.cc
+  wayland-client.hpp
+  )
+
 target_link_libraries(wayland-scanner-plus
   uuid
   )
 
 add_custom_target(run
-  #  COMMAND ./wayland-scanner-plus < weston-desktop-shell.xml
-  COMMAND ./wayland-scanner-plus < wayland.xml
-  DEPENDS wayland-scanner-plus
+  COMMAND ./test-client
+  DEPENDS wayland-scanner-plus wayland-client.hpp test-client
   )
-

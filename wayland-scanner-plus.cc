@@ -134,9 +134,9 @@ int main() {
     //
     // code generators
     //
-    static auto enum_entry = [](ptree const& tree) {
+    static auto enum_entry = [](ptree const& tree, std::string enum_name) {
       return concat("      ",
-		    attr(tree, "name"),
+		    concat(enum_name, "_", attr(tree, "name")),
 		    " = ",
 		    upper(attr(tree, "value")),
 		    ",\n");
@@ -146,12 +146,12 @@ int main() {
       auto text = client_interface_enum;
       auto enum_name = attr(tree, "name");
 
-      text = subst(text, "ENUM_NAME",   enum_name);
+      text = subst(text, "ENUM_NAME", enum_name);
 
       std::string enum_entries;
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "entry")) {
-	  enum_entries += enum_entry(child.second);
+	  enum_entries += enum_entry(child.second, enum_name);
 	}
       }
       text = subst(text, "ENUM_ENTRIES", trim_last(enum_entries));
@@ -207,20 +207,28 @@ int main() {
 	if (0 == std::strcmp(child.first.data(), "arg")) {
 	  if (attr(child.second, "type") == "new_id") {
 	    request_result = attr(child.second, "interface");
-	    if (request_result == "nil") {
-	      request_result = "void"; // e.g., wl_registry.bind (W.I.P.: needs special params)
-	    }
 	    request_result.push_back('*');
 	  }
 	  else {
-	    request_args += request_arg(child.second);
+	    request_args   += request_arg(child.second);
 	    request_params += request_param(child.second);
 	  }
 	}
       }
+
+      if (request_result == "nil*") {
+	request_result = "void*";
+
+	// e.g., wl_registry.bind (needs special params)
+	request_params += "wl_interface const* interface, ";
+	request_params += "uint32_t version, ";
+	request_args   += "interface, ";
+	request_args   += "version, ";
+      }
+
       text = subst(text, "REQUEST_RESULT", request_result);
       text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
-      text = subst(text, "REQUEST_ARGS", trim_last<2>(request_args));
+      text = subst(text, "REQUEST_ARGS",   trim_last<2>(request_args));
       text = subst(text, "INTERFACE_NAME", interface_name);
 
       return text;
@@ -233,7 +241,11 @@ int main() {
 	return std::string();
       }
       else if ("object" == arg_type) {
-	arg_type = attr(tree, "interface") + "*";
+	auto interface = attr(tree, "interface");
+	if ("nil" == interface) {
+	  interface = "void";
+	}
+	arg_type = interface + "*";
       }
       else if ("int" == arg_type) {
 	arg_type = "int32_t";
@@ -284,6 +296,12 @@ int main() {
 
       text = subst(text, "INTERFACE_NAME",    interface_name);
       text = subst(text, "INTERFACE_VERSION", interface_version);
+      if (interface_name == "wl_display") {
+	text = subst(text, "DELETER", "disconnect");
+      }
+      else {
+	text = subst(text, "DELETER", "destroy");
+      }
 
       std::string interface_members;
       for (auto const& child : tree.get_child("")) {

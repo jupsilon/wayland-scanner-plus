@@ -13,6 +13,10 @@
     }
     ~$(INTERFACE_NAME)_t() override
     {
+      if (this->pointer) {
+        $(INTERFACE_NAME)_$(DELETER)(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:

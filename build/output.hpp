@@ -1,41 +1,5 @@
-#ifndef INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A
-#define INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A
-
-namespace details // WIP
-{
-  class proxy {
-  public:
-    virtual ~proxy() { }
-  };
-
-  template <typename WL_C_STRUCT, size_t VERSION>
-  class interface_core : public proxy {
-  public:
-    interface_core(WL_C_STRUCT* pointer)
-      : pointer(pointer)
-    {
-    }
-
-    interface_core(interface_core&& other)
-      : pointer(other.pointer)
-    {
-    }
-
-    interface_core(interface_core const&) = delete;
-    interface_core& operator = (interface_core const&) = delete;
-
-    ~interface_core() override {
-      // should be overrided by "protocol destructor" (WIP)
-      if (this->pointer) {
-	wl_proxy_destroy(reinterpret_cast<wl_proxy*>(this->pointer));
-      }
-    }
-    operator WL_C_STRUCT*() const { return this->pointer; }
-
-  protected:
-    WL_C_STRUCT* pointer;
-  };
-}
+#ifndef INCLUDE_WAYLAND_CLIENT_HPP_744AF533_069C_4A65_97CA_9F11CB059DC9
+#define INCLUDE_WAYLAND_CLIENT_HPP_744AF533_069C_4A65_97CA_9F11CB059DC9
 
 namespace wayland_client
 {
@@ -56,6 +20,10 @@ namespace wayland_client
     }
     ~wl_display_t() override
     {
+      if (this->pointer) {
+        wl_display_disconnect(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -67,11 +35,11 @@ namespace wayland_client
     {
       return wl_display_get_registry(pointer);
     }
-    std::function<void (nil*, uint32_t, char const*)> error;
+    std::function<void (void*, uint32_t, char const*)> error;
     enum class error : uint32_t {
-      invalid_object = 0,
-      invalid_method = 1,
-      no_memory = 2,
+      error_invalid_object = 0,
+      error_invalid_method = 1,
+      error_no_memory = 2,
     };
     std::function<void (uint32_t)> delete_id;
   };
@@ -90,12 +58,16 @@ namespace wayland_client
     }
     ~wl_registry_t() override
     {
+      if (this->pointer) {
+        wl_registry_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
-    void* bind(uint32_t name)
+    void* bind(uint32_t name, wl_interface const* interface, uint32_t version)
     {
-      return wl_registry_bind(pointer, name);
+      return wl_registry_bind(pointer, name, interface, version);
     }
     std::function<void (uint32_t, char const*, uint32_t)> global;
     std::function<void (uint32_t)> global_remove;
@@ -115,6 +87,10 @@ namespace wayland_client
     }
     ~wl_callback_t() override
     {
+      if (this->pointer) {
+        wl_callback_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -135,6 +111,10 @@ namespace wayland_client
     }
     ~wl_compositor_t() override
     {
+      if (this->pointer) {
+        wl_compositor_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -162,6 +142,10 @@ namespace wayland_client
     }
     ~wl_shm_pool_t() override
     {
+      if (this->pointer) {
+        wl_shm_pool_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -193,73 +177,77 @@ namespace wayland_client
     }
     ~wl_shm_t() override
     {
+      if (this->pointer) {
+        wl_shm_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      invalid_format = 0,
-      invalid_stride = 1,
-      invalid_fd = 2,
+      error_invalid_format = 0,
+      error_invalid_stride = 1,
+      error_invalid_fd = 2,
     };
     enum class format : uint32_t {
-      argb8888 = 0,
-      xrgb8888 = 1,
-      c8 = 0X20203843,
-      rgb332 = 0X38424752,
-      bgr233 = 0X38524742,
-      xrgb4444 = 0X32315258,
-      xbgr4444 = 0X32314258,
-      rgbx4444 = 0X32315852,
-      bgrx4444 = 0X32315842,
-      argb4444 = 0X32315241,
-      abgr4444 = 0X32314241,
-      rgba4444 = 0X32314152,
-      bgra4444 = 0X32314142,
-      xrgb1555 = 0X35315258,
-      xbgr1555 = 0X35314258,
-      rgbx5551 = 0X35315852,
-      bgrx5551 = 0X35315842,
-      argb1555 = 0X35315241,
-      abgr1555 = 0X35314241,
-      rgba5551 = 0X35314152,
-      bgra5551 = 0X35314142,
-      rgb565 = 0X36314752,
-      bgr565 = 0X36314742,
-      rgb888 = 0X34324752,
-      bgr888 = 0X34324742,
-      xbgr8888 = 0X34324258,
-      rgbx8888 = 0X34325852,
-      bgrx8888 = 0X34325842,
-      abgr8888 = 0X34324241,
-      rgba8888 = 0X34324152,
-      bgra8888 = 0X34324142,
-      xrgb2101010 = 0X30335258,
-      xbgr2101010 = 0X30334258,
-      rgbx1010102 = 0X30335852,
-      bgrx1010102 = 0X30335842,
-      argb2101010 = 0X30335241,
-      abgr2101010 = 0X30334241,
-      rgba1010102 = 0X30334152,
-      bgra1010102 = 0X30334142,
-      yuyv = 0X56595559,
-      yvyu = 0X55595659,
-      uyvy = 0X59565955,
-      vyuy = 0X59555956,
-      ayuv = 0X56555941,
-      nv12 = 0X3231564E,
-      nv21 = 0X3132564E,
-      nv16 = 0X3631564E,
-      nv61 = 0X3136564E,
-      yuv410 = 0X39565559,
-      yvu410 = 0X39555659,
-      yuv411 = 0X31315559,
-      yvu411 = 0X31315659,
-      yuv420 = 0X32315559,
-      yvu420 = 0X32315659,
-      yuv422 = 0X36315559,
-      yvu422 = 0X36315659,
-      yuv444 = 0X34325559,
-      yvu444 = 0X34325659,
+      format_argb8888 = 0,
+      format_xrgb8888 = 1,
+      format_c8 = 0X20203843,
+      format_rgb332 = 0X38424752,
+      format_bgr233 = 0X38524742,
+      format_xrgb4444 = 0X32315258,
+      format_xbgr4444 = 0X32314258,
+      format_rgbx4444 = 0X32315852,
+      format_bgrx4444 = 0X32315842,
+      format_argb4444 = 0X32315241,
+      format_abgr4444 = 0X32314241,
+      format_rgba4444 = 0X32314152,
+      format_bgra4444 = 0X32314142,
+      format_xrgb1555 = 0X35315258,
+      format_xbgr1555 = 0X35314258,
+      format_rgbx5551 = 0X35315852,
+      format_bgrx5551 = 0X35315842,
+      format_argb1555 = 0X35315241,
+      format_abgr1555 = 0X35314241,
+      format_rgba5551 = 0X35314152,
+      format_bgra5551 = 0X35314142,
+      format_rgb565 = 0X36314752,
+      format_bgr565 = 0X36314742,
+      format_rgb888 = 0X34324752,
+      format_bgr888 = 0X34324742,
+      format_xbgr8888 = 0X34324258,
+      format_rgbx8888 = 0X34325852,
+      format_bgrx8888 = 0X34325842,
+      format_abgr8888 = 0X34324241,
+      format_rgba8888 = 0X34324152,
+      format_bgra8888 = 0X34324142,
+      format_xrgb2101010 = 0X30335258,
+      format_xbgr2101010 = 0X30334258,
+      format_rgbx1010102 = 0X30335852,
+      format_bgrx1010102 = 0X30335842,
+      format_argb2101010 = 0X30335241,
+      format_abgr2101010 = 0X30334241,
+      format_rgba1010102 = 0X30334152,
+      format_bgra1010102 = 0X30334142,
+      format_yuyv = 0X56595559,
+      format_yvyu = 0X55595659,
+      format_uyvy = 0X59565955,
+      format_vyuy = 0X59555956,
+      format_ayuv = 0X56555941,
+      format_nv12 = 0X3231564E,
+      format_nv21 = 0X3132564E,
+      format_nv16 = 0X3631564E,
+      format_nv61 = 0X3136564E,
+      format_yuv410 = 0X39565559,
+      format_yvu410 = 0X39555659,
+      format_yuv411 = 0X31315559,
+      format_yvu411 = 0X31315659,
+      format_yuv420 = 0X32315559,
+      format_yvu420 = 0X32315659,
+      format_yuv422 = 0X36315559,
+      format_yvu422 = 0X36315659,
+      format_yuv444 = 0X34325559,
+      format_yvu444 = 0X34325659,
     };
     wl_shm_pool* create_pool(int fd, int32_t size)
     {
@@ -282,6 +270,10 @@ namespace wayland_client
     }
     ~wl_buffer_t() override
     {
+      if (this->pointer) {
+        wl_buffer_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -306,14 +298,18 @@ namespace wayland_client
     }
     ~wl_data_offer_t() override
     {
+      if (this->pointer) {
+        wl_data_offer_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      invalid_finish = 0,
-      invalid_action_mask = 1,
-      invalid_action = 2,
-      invalid_offer = 3,
+      error_invalid_finish = 0,
+      error_invalid_action_mask = 1,
+      error_invalid_action = 2,
+      error_invalid_offer = 3,
     };
     void accept(uint32_t serial, char const* mime_type)
     {
@@ -354,12 +350,16 @@ namespace wayland_client
     }
     ~wl_data_source_t() override
     {
+      if (this->pointer) {
+        wl_data_source_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      invalid_action_mask = 0,
-      invalid_source = 1,
+      error_invalid_action_mask = 0,
+      error_invalid_source = 1,
     };
     void offer(char const* mime_type)
     {
@@ -395,11 +395,15 @@ namespace wayland_client
     }
     ~wl_data_device_t() override
     {
+      if (this->pointer) {
+        wl_data_device_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      role = 0,
+      error_role = 0,
     };
     void start_drag(wl_data_source* source, wl_surface* origin, wl_surface* icon, uint32_t serial)
     {
@@ -435,6 +439,10 @@ namespace wayland_client
     }
     ~wl_data_device_manager_t() override
     {
+      if (this->pointer) {
+        wl_data_device_manager_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -447,10 +455,10 @@ namespace wayland_client
       return wl_data_device_manager_get_data_device(pointer, seat);
     }
     enum class dnd_action : uint32_t {
-      none = 0,
-      copy = 1,
-      move = 2,
-      ask = 4,
+      dnd_action_none = 0,
+      dnd_action_copy = 1,
+      dnd_action_move = 2,
+      dnd_action_ask = 4,
     };
   };
   class wl_shell_t : public interface_core<wl_shell, 1> {
@@ -468,11 +476,15 @@ namespace wayland_client
     }
     ~wl_shell_t() override
     {
+      if (this->pointer) {
+        wl_shell_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      role = 0,
+      error_role = 0,
     };
     wl_shell_surface* get_shell_surface(wl_surface* surface)
     {
@@ -494,6 +506,10 @@ namespace wayland_client
     }
     ~wl_shell_surface_t() override
     {
+      if (this->pointer) {
+        wl_shell_surface_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -506,15 +522,15 @@ namespace wayland_client
       return wl_shell_surface_move(pointer, seat, serial);
     }
     enum class resize : uint32_t {
-      none = 0,
-      top = 1,
-      bottom = 2,
-      left = 4,
-      top_left = 5,
-      bottom_left = 6,
-      right = 8,
-      top_right = 9,
-      bottom_right = 10,
+      resize_none = 0,
+      resize_top = 1,
+      resize_bottom = 2,
+      resize_left = 4,
+      resize_top_left = 5,
+      resize_bottom_left = 6,
+      resize_right = 8,
+      resize_top_right = 9,
+      resize_bottom_right = 10,
     };
     void resize(wl_seat* seat, uint32_t serial, uint32_t edges)
     {
@@ -525,17 +541,17 @@ namespace wayland_client
       return wl_shell_surface_set_toplevel(pointer);
     }
     enum class transient : uint32_t {
-      inactive = 0X1,
+      transient_inactive = 0X1,
     };
     void set_transient(wl_surface* parent, int32_t x, int32_t y, uint32_t flags)
     {
       return wl_shell_surface_set_transient(pointer, parent, x, y, flags);
     }
     enum class fullscreen_method : uint32_t {
-      default = 0,
-      scale = 1,
-      driver = 2,
-      fill = 3,
+      fullscreen_method_default = 0,
+      fullscreen_method_scale = 1,
+      fullscreen_method_driver = 2,
+      fullscreen_method_fill = 3,
     };
     void set_fullscreen(uint32_t method, uint32_t framerate, wl_output* output)
     {
@@ -576,12 +592,16 @@ namespace wayland_client
     }
     ~wl_surface_t() override
     {
+      if (this->pointer) {
+        wl_surface_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      invalid_scale = 0,
-      invalid_transform = 1,
+      error_invalid_scale = 0,
+      error_invalid_transform = 1,
     };
     void destroy()
     {
@@ -641,13 +661,17 @@ namespace wayland_client
     }
     ~wl_seat_t() override
     {
+      if (this->pointer) {
+        wl_seat_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class capability : uint32_t {
-      pointer = 1,
-      keyboard = 2,
-      touch = 4,
+      capability_pointer = 1,
+      capability_keyboard = 2,
+      capability_touch = 4,
     };
     std::function<void (uint32_t)> capabilities;
     wl_pointer* get_pointer()
@@ -683,11 +707,15 @@ namespace wayland_client
     }
     ~wl_pointer_t() override
     {
+      if (this->pointer) {
+        wl_pointer_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class error : uint32_t {
-      role = 0,
+      error_role = 0,
     };
     void set_cursor(uint32_t serial, wl_surface* surface, int32_t hotspot_x, int32_t hotspot_y)
     {
@@ -697,13 +725,13 @@ namespace wayland_client
     std::function<void (uint32_t, wl_surface*)> leave;
     std::function<void (uint32_t, fixed, fixed)> motion;
     enum class button_state : uint32_t {
-      released = 0,
-      pressed = 1,
+      button_state_released = 0,
+      button_state_pressed = 1,
     };
     std::function<void (uint32_t, uint32_t, uint32_t, uint32_t)> button;
     enum class axis : uint32_t {
-      vertical_scroll = 0,
-      horizontal_scroll = 1,
+      axis_vertical_scroll = 0,
+      axis_horizontal_scroll = 1,
     };
     std::function<void (uint32_t, uint32_t, fixed)> axis;
     void release()
@@ -712,10 +740,10 @@ namespace wayland_client
     }
     std::function<void ()> frame;
     enum class axis_source : uint32_t {
-      wheel = 0,
-      finger = 1,
-      continuous = 2,
-      wheel_tilt = 3,
+      axis_source_wheel = 0,
+      axis_source_finger = 1,
+      axis_source_continuous = 2,
+      axis_source_wheel_tilt = 3,
     };
     std::function<void (uint32_t)> axis_source;
     std::function<void (uint32_t, uint32_t)> axis_stop;
@@ -736,19 +764,23 @@ namespace wayland_client
     }
     ~wl_keyboard_t() override
     {
+      if (this->pointer) {
+        wl_keyboard_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class keymap_format : uint32_t {
-      no_keymap = 0,
-      xkb_v1 = 1,
+      keymap_format_no_keymap = 0,
+      keymap_format_xkb_v1 = 1,
     };
     std::function<void (uint32_t, int, uint32_t)> keymap;
     std::function<void (uint32_t, wl_surface*, chunk)> enter;
     std::function<void (uint32_t, wl_surface*)> leave;
     enum class key_state : uint32_t {
-      released = 0,
-      pressed = 1,
+      key_state_released = 0,
+      key_state_pressed = 1,
     };
     std::function<void (uint32_t, uint32_t, uint32_t, uint32_t)> key;
     std::function<void (uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> modifiers;
@@ -773,6 +805,10 @@ namespace wayland_client
     }
     ~wl_touch_t() override
     {
+      if (this->pointer) {
+        wl_touch_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -803,31 +839,35 @@ namespace wayland_client
     }
     ~wl_output_t() override
     {
+      if (this->pointer) {
+        wl_output_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
     enum class subpixel : uint32_t {
-      unknown = 0,
-      none = 1,
-      horizontal_rgb = 2,
-      horizontal_bgr = 3,
-      vertical_rgb = 4,
-      vertical_bgr = 5,
+      subpixel_unknown = 0,
+      subpixel_none = 1,
+      subpixel_horizontal_rgb = 2,
+      subpixel_horizontal_bgr = 3,
+      subpixel_vertical_rgb = 4,
+      subpixel_vertical_bgr = 5,
     };
     enum class transform : uint32_t {
-      normal = 0,
-      90 = 1,
-      180 = 2,
-      270 = 3,
-      flipped = 4,
-      flipped_90 = 5,
-      flipped_180 = 6,
-      flipped_270 = 7,
+      transform_normal = 0,
+      transform_90 = 1,
+      transform_180 = 2,
+      transform_270 = 3,
+      transform_flipped = 4,
+      transform_flipped_90 = 5,
+      transform_flipped_180 = 6,
+      transform_flipped_270 = 7,
     };
     std::function<void (int32_t, int32_t, int32_t, int32_t, int32_t, char const*, char const*, int32_t)> geometry;
     enum class mode : uint32_t {
-      current = 0X1,
-      preferred = 0X2,
+      mode_current = 0X1,
+      mode_preferred = 0X2,
     };
     std::function<void (uint32_t, int32_t, int32_t, int32_t)> mode;
     std::function<void ()> done;
@@ -852,6 +892,10 @@ namespace wayland_client
     }
     ~wl_region_t() override
     {
+      if (this->pointer) {
+        wl_region_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -883,6 +927,10 @@ namespace wayland_client
     }
     ~wl_subcompositor_t() override
     {
+      if (this->pointer) {
+        wl_subcompositor_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -891,7 +939,7 @@ namespace wayland_client
       return wl_subcompositor_destroy(pointer);
     }
     enum class error : uint32_t {
-      bad_surface = 0,
+      error_bad_surface = 0,
     };
     wl_subsurface* get_subsurface(wl_surface* surface, wl_surface* parent)
     {
@@ -913,6 +961,10 @@ namespace wayland_client
     }
     ~wl_subsurface_t() override
     {
+      if (this->pointer) {
+        wl_subsurface_destroy(this->pointer);
+	this->pointer = nullptr;
+      }
     }
 
   public:
@@ -921,7 +973,7 @@ namespace wayland_client
       return wl_subsurface_destroy(pointer);
     }
     enum class error : uint32_t {
-      bad_surface = 0,
+      error_bad_surface = 0,
     };
     void set_position(int32_t x, int32_t y)
     {
@@ -946,4 +998,4 @@ namespace wayland_client
   };
 }
 
-#endif/*INCLUDE_WAYLAND_CLIENT_HPP_EFC109BB_2C3C_4B28_B805_F26C8B22337A*/
+#endif/*INCLUDE_WAYLAND_CLIENT_HPP_744AF533_069C_4A65_97CA_9F11CB059DC9*/
