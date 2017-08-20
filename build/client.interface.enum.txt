@@ -1,3 +1,0 @@
-    enum class $(ENUM_NAME) : uint32_t {
-$(ENUM_ENTRIES)
-    };

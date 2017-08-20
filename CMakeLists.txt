@@ -8,20 +8,24 @@ set(SCANNER "wayland-scanner")
 
 add_executable(wayland-scanner-plus
   wayland-scanner-plus.cc
+  template.cc
   )
 
-add_custom_target(wayland-client.hpp
+add_custom_target(wayland-client.hpp ALL
   COMMAND ./wayland-scanner-plus < wayland.xml > ../wayland-client.hpp
   DEPENDS wayland-scanner-plus
   )
 
 add_executable(test-client
   test-client.cc
-  wayland-client.hpp
   )
 
 target_link_libraries(wayland-scanner-plus
   uuid
+  )
+
+target_link_libraries(test-client
+  wayland-client
   )
 
 add_custom_target(run

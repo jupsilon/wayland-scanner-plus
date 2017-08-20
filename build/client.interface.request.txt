@@ -1,4 +1,0 @@
-    $(REQUEST_RESULT) $(REQUEST_NAME)($(REQUEST_PARAMS))
-    {
-      return $(INTERFACE_NAME)_$(REQUEST_NAME)($(REQUEST_ARGS));
-    }

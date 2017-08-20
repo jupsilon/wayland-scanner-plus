@@ -4,7 +4,6 @@
 #include <regex>
 #include <tuple>
 #include <algorithm>
-#include <fstream>
 #include <iterator>
 
 #include <cctype>
@@ -112,25 +111,16 @@ inline std::string uuid() {
   return std::regex_replace(buf, std::regex("-"), "_");
 }
 
-std::string load_template(char const* filename) {
-  std::ifstream input(filename, std::ios::in);
-  std::cerr << "loading template: " << filename << std::endl;
-  assert(input.is_open());
-  std::cerr << "done." << std::endl;
-  return std::string(std::istreambuf_iterator<char>(input),
-		     std::istreambuf_iterator<char>());
-}
+extern std::string const client;
+extern std::string const client_interface;
+extern std::string const client_interface_enum;
+extern std::string const client_interface_request;
+extern std::string const client_interface_event;
 
 int main() { 
   using boost::property_tree::ptree;
 
   try {
-    static auto const client                   = load_template("client.txt");
-    static auto const client_interface         = load_template("client.interface.txt");
-    static auto const client_interface_enum    = load_template("client.interface.enum.txt");
-    static auto const client_interface_request = load_template("client.interface.request.txt");
-    static auto const client_interface_event   = load_template("client.interface.event.txt");
-
     //
     // code generators
     //
@@ -343,7 +333,6 @@ int main() {
     read_xml(std::cin, root);
 
     std::cout << protocol(root.get_child("protocol"));
-    std::ofstream("output.hpp") << protocol(root.get_child("protocol"));
 
     return 0;
   }
