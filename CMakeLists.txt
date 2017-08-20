@@ -16,8 +16,16 @@ add_custom_target(wayland-client.hpp ALL
   DEPENDS wayland-scanner-plus
   )
 
+# add_custom_target(weston-desktop.c ALL
+#   COMMAND wayland-scanner code          < weston-desktop-shell.xml > ../weston-desktop.c
+#   COMMAND wayland-scanner client-header < weston-desktop-shell.xml > ../weston-desktop-client.h
+#   COMMAND ./wayland-scanner-plus < weston-desktop-shell.xml > ../weston-desktop-client.hpp
+#   DEPENDS wayland-scanner-plus
+#   )
+
 add_executable(test-client
   test-client.cc
+  # weston-desktop.c
   )
 
 target_link_libraries(wayland-scanner-plus

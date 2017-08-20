@@ -1,7 +1,7 @@
 #ifndef INCLUDE_WAYLAND_CLIENT_CORE_HPP_12C976D2_782D_47F9_B2F9_F8E8FFC3104E_
 #define INCLUDE_WAYLAND_CLIENT_CORE_HPP_12C976D2_782D_47F9_B2F9_F8E8FFC3104E_
 
-namespace wayland_client
+namespace wayland_client_core
 {
   class proxy {
   public:
@@ -46,13 +46,12 @@ namespace wayland_client
 
       interface_core& operator = (interface_core&& other) {
 	if (this != &other) {
-	  std::swap(this->pointer, other->pointer);
+	  std::swap(this->pointer, other.pointer);
 	}
 	return *this;
       }
 
       operator c_struct_type*() const { return this->pointer; }
-      operator bool() const { return this->pointer != nullptr; }
 
     protected:
       c_struct_type* pointer;

@@ -113,6 +113,7 @@ inline std::string uuid() {
 
 extern std::string const client;
 extern std::string const client_interface;
+extern std::string const client_interface_declarations;
 extern std::string const client_interface_enum;
 extern std::string const client_interface_request;
 extern std::string const client_interface_request_impl;
@@ -199,8 +200,7 @@ int main() {
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "arg")) {
 	  if (attr(child.second, "type") == "new_id") {
-	    request_result = attr(child.second, "interface");
-	    request_result.push_back('*');
+	    request_result = concat(attr(child.second, "interface"), "_t");
 	  }
 	  else {
 	    request_args   += request_arg(child.second);
@@ -209,7 +209,7 @@ int main() {
 	}
       }
 
-      if (request_result == "nil*") {
+      if (request_result == "nil_t") {
 	request_result = "void*";
 
 	// e.g., wl_registry.bind (needs special params)
@@ -293,6 +293,8 @@ int main() {
 
       return text;
     };
+
+    static std::string declarations;
     
     static auto interface = [](ptree const& tree) {
       auto text = client_interface;
@@ -322,6 +324,11 @@ int main() {
       }
       text = subst(text, "INTERFACE_MEMBERS", trim_last(interface_members));
 
+      {
+	std::string text = client_interface_declarations;
+	declarations += subst(text, "INTERFACE_NAME", interface_name);
+      }
+
       return text;
     };
 
@@ -339,6 +346,7 @@ int main() {
 	  interfaces += interface(child.second);
 	}
       }
+      text = subst(text, "INTERFACE_DECLARATIONS", declarations);
       text = subst(text, "INTERFACES", trim_last(interfaces));
       text = subst(text, "IMPLEMENTATIONS", implementations);
 

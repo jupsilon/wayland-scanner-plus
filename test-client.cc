@@ -3,10 +3,18 @@
 #include <iomanip>
 #include <functional>
 
+#include <cstring>
+
 #include <wayland-client.h>
 
 #include "wayland-client-core.hpp"
 #include "wayland-client.hpp"
+
+#include "utilities/misc.hpp"
+
+// #include "weston-desktop-client.h"
+// #include "weston-desktop-client.hpp"
+
 
 int main() {
   using namespace wayland_client;
@@ -27,18 +35,36 @@ int main() {
     };
 
     wl_display_t display(wl_display_connect(nullptr));
-    auto registry = display.get_registry();
+    wl_compositor_t compositor;
+    wl_shell_t shell;
+    {
+      wl_registry_t registry = display.get_registry();
 
-    wl_registry_add_listener(registry, &listener, nullptr);
-    global = [&](void*, wl_registry* registry, uint32_t name,
-		 char const* interface, uint32_t version)
+      wl_registry_add_listener(registry, &listener, nullptr);
+      global = [&](void*, wl_registry*, uint32_t name,
+		   char const* interface, uint32_t version)
       {
 	std::cerr << std::setw(4) << name << ':' << interface << std::endl;
+	if (0 == std::strcmp(interface, wl_compositor_t::interface.name)) {
+	  void* bound = registry.bind(name, &wl_compositor_t::interface, version);
+	  compositor.assign(reinterpret_cast<wl_compositor*>(bound));
+	}
+	if (0 == std::strcmp(interface, wl_shell_t::interface.name)) {
+	  void* bound = registry.bind(name, &wl_shell_t::interface, version);
+	  shell.assign(reinterpret_cast<wl_shell*>(bound));
+	}
       };
-    wl_display_dispatch(display);
+      wl_display_roundtrip(display);
+    }
 
-    std::cerr << typeid (display).name() << std::endl;
-    std::cerr << typeid (registry).name() << std::endl;
+    std::cerr << display << std::endl;
+    std::cerr << compositor << std::endl;
+    std::cerr << shell << std::endl;
+
+    auto surface = compositor.create_surface();
+
+    std::cerr << utilities::demangled_id<decltype (surface)> << std::endl;
+    std::cerr << surface << std::endl;
   }
   catch (std::exception& ex) {
     std::cerr << ex.what() << std::endl;
