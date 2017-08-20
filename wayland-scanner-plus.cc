@@ -115,6 +115,7 @@ extern std::string const client;
 extern std::string const client_interface;
 extern std::string const client_interface_enum;
 extern std::string const client_interface_request;
+extern std::string const client_interface_request_impl;
 extern std::string const client_interface_event;
 
 int main() { 
@@ -184,6 +185,8 @@ int main() {
       return concat(arg_name, ", ");
     };
 
+    static std::string implementations;
+
     static auto request = [](ptree const& tree, std::string interface_name) {
       auto text = client_interface_request;
       auto request_name = attr(tree, "name");
@@ -220,6 +223,18 @@ int main() {
       text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
       text = subst(text, "REQUEST_ARGS",   trim_last<2>(request_args));
       text = subst(text, "INTERFACE_NAME", interface_name);
+
+      {
+	std::string text = client_interface_request_impl;
+
+	text = subst(text, "REQUEST_NAME",   request_name);
+	text = subst(text, "REQUEST_RESULT", request_result);
+	text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
+	text = subst(text, "REQUEST_ARGS",   trim_last<2>(request_args));
+	text = subst(text, "INTERFACE_NAME", interface_name);
+
+	implementations += text;
+      }
 
       return text;
     };
@@ -325,6 +340,7 @@ int main() {
 	}
       }
       text = subst(text, "INTERFACES", trim_last(interfaces));
+      text = subst(text, "IMPLEMENTATIONS", implementations);
 
       return text;
     };
