@@ -15,7 +15,6 @@
 
 #include "utilities/misc.hpp"
 
-
 template <typename Ch>
 inline auto dump(std::basic_ostream<Ch>& output,
 		 boost::property_tree::ptree const& children,
@@ -324,11 +323,13 @@ int main() {
       }
       text = subst(text, "INTERFACE_MEMBERS", trim_last(interface_members));
 
-      {
-	std::string text = client_interface_declarations;
-	declarations += subst(text, "INTERFACE_NAME", interface_name);
-      }
+      return text;
+    };
 
+    static auto interface_declaration = [](ptree const& tree) {
+      std::string text = client_interface_declarations;
+      auto interface_name = attr(tree, "name");
+      text = subst(text, "INTERFACE_NAME", interface_name);
       return text;
     };
 
@@ -340,15 +341,17 @@ int main() {
       text = subst(text, "CAP_PROTOCOL_NAME", upper(protocol_name));
       text = subst(text, "UUID", uuid());
 
+      std::string interface_declarations;
       std::string interfaces;
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "interface")) {
+	  interface_declarations += interface_declaration(child.second);
 	  interfaces += interface(child.second);
 	}
       }
-      text = subst(text, "INTERFACE_DECLARATIONS", declarations);
+      text = subst(text, "INTERFACE_DECLARATIONS", trim_last(interface_declarations));
       text = subst(text, "INTERFACES", trim_last(interfaces));
-      text = subst(text, "IMPLEMENTATIONS", implementations);
+      text = subst(text, "IMPLEMENTATIONS", trim_last(implementations));
 
       return text;
     };
