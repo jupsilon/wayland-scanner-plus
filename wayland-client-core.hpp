@@ -1,6 +1,9 @@
 #ifndef INCLUDE_WAYLAND_CLIENT_CORE_HPP_12C976D2_782D_47F9_B2F9_F8E8FFC3104E_
 #define INCLUDE_WAYLAND_CLIENT_CORE_HPP_12C976D2_782D_47F9_B2F9_F8E8FFC3104E_
 
+#include <functional>
+#include <algorithm>
+
 namespace wayland_client_core
 {
   class proxy {

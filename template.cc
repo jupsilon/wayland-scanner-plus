@@ -5,6 +5,8 @@ extern std::string const client = R"(
 #ifndef INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 #define INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 
+#include <functional>
+
 namespace $(PROTOCOL_NAME)_client
 {
   using namespace wayland_client_core::details;

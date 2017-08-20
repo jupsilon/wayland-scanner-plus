@@ -84,6 +84,7 @@ int main() {
     std::cerr << desktop_shell << std::endl;
 
     desktop_shell.set_background(output, surface);
+    desktop_shell.desktop_ready();
   }
   catch (std::exception& ex) {
     std::cerr << ex.what() << std::endl;
