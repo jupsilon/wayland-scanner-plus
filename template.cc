@@ -7,6 +7,8 @@ extern std::string const client = R"(
 
 #include <functional>
 
+#include "wayland-client-core.hpp"
+
 namespace $(PROTOCOL_NAME)_client
 {
   using namespace wayland_client_core::details;
@@ -42,6 +44,17 @@ extern std::string const client_interface = R"(
         $(INTERFACE_NAME)_$(DELETER)(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return $(INTERFACE_NAME)_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return $(INTERFACE_NAME)_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      $(INTERFACE_NAME)_set_user_data(this->pointer, data);
     }
 
   public:

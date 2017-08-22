@@ -85,6 +85,8 @@ int main() {
 
     desktop_shell.set_background(output, surface);
     desktop_shell.desktop_ready();
+
+    std::cerr << compositor.get_version() << std::endl;
   }
   catch (std::exception& ex) {
     std::cerr << ex.what() << std::endl;

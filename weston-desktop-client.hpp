@@ -1,7 +1,9 @@
-#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_E9F9C79D_0130_458D_9557_BD0C1077667C
-#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_E9F9C79D_0130_458D_9557_BD0C1077667C
+#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_6D74C50A_7DD2_4DFA_A269_B5CAFCCB57F9
+#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_6D74C50A_7DD2_4DFA_A269_B5CAFCCB57F9
 
 #include <functional>
+
+#include "wayland-client-core.hpp"
 
 namespace weston_desktop_client
 {
@@ -30,6 +32,17 @@ namespace weston_desktop_client
         weston_desktop_shell_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return weston_desktop_shell_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return weston_desktop_shell_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      weston_desktop_shell_set_user_data(this->pointer, data);
     }
 
   public:
@@ -90,6 +103,17 @@ namespace weston_desktop_client
     }
 
   public:
+    uint32_t get_version() {
+      return weston_screensaver_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return weston_screensaver_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      weston_screensaver_set_user_data(this->pointer, data);
+    }
+
+  public:
     void set_surface(wl_surface* surface, wl_output* output);
   };
 
@@ -127,4 +151,4 @@ namespace weston_desktop_client
   }
 }
 
-#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_E9F9C79D_0130_458D_9557_BD0C1077667C*/
+#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_6D74C50A_7DD2_4DFA_A269_B5CAFCCB57F9*/

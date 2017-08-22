@@ -9,7 +9,7 @@
 namespace utilities
 {
   template <typename T>
-  inline auto demangled_id = [](){
+  auto demangled_id = [](){
     static auto enscope = [](char* buf) {
       static auto deleter = [](char* p) { std::free(p); };
       return std::unique_ptr<char, decltype (deleter)>(buf, deleter);

@@ -1,7 +1,9 @@
-#ifndef INCLUDE_WAYLAND_CLIENT_HPP_D3F35307_6127_428D_8A2F_3ACDC519840C
-#define INCLUDE_WAYLAND_CLIENT_HPP_D3F35307_6127_428D_8A2F_3ACDC519840C
+#ifndef INCLUDE_WAYLAND_CLIENT_HPP_6E8C5DC8_1FE5_40D9_95F1_FD32DE74492C
+#define INCLUDE_WAYLAND_CLIENT_HPP_6E8C5DC8_1FE5_40D9_95F1_FD32DE74492C
 
 #include <functional>
+
+#include "wayland-client-core.hpp"
 
 namespace wayland_client
 {
@@ -53,6 +55,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_display_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_display_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_display_set_user_data(this->pointer, data);
+    }
+
+  public:
     wl_callback_t sync();
     wl_registry_t get_registry();
     std::function<void (void*, uint32_t, char const*)> error;
@@ -86,6 +99,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_registry_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_registry_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_registry_set_user_data(this->pointer, data);
+    }
+
+  public:
     void* bind(uint32_t name, wl_interface const* interface, uint32_t version);
     std::function<void (uint32_t, char const*, uint32_t)> global;
     std::function<void (uint32_t)> global_remove;
@@ -113,6 +137,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_callback_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_callback_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_callback_set_user_data(this->pointer, data);
+    }
+
+  public:
     std::function<void (uint32_t)> done;
   };
   class wl_compositor_t : public interface_core<wl_compositor, 4> {
@@ -135,6 +170,17 @@ namespace wayland_client
         wl_compositor_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_compositor_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_compositor_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_compositor_set_user_data(this->pointer, data);
     }
 
   public:
@@ -164,6 +210,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_shm_pool_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_shm_pool_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_shm_pool_set_user_data(this->pointer, data);
+    }
+
+  public:
     wl_buffer_t create_buffer(int32_t offset, int32_t width, int32_t height, int32_t stride, uint32_t format);
     void destroy();
     void resize(int32_t size);
@@ -188,6 +245,17 @@ namespace wayland_client
         wl_shm_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_shm_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_shm_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_shm_set_user_data(this->pointer, data);
     }
 
   public:
@@ -282,6 +350,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_buffer_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_buffer_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_buffer_set_user_data(this->pointer, data);
+    }
+
+  public:
     void destroy();
     std::function<void ()> release;
   };
@@ -305,6 +384,17 @@ namespace wayland_client
         wl_data_offer_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_data_offer_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_data_offer_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_data_offer_set_user_data(this->pointer, data);
     }
 
   public:
@@ -346,6 +436,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_data_source_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_data_source_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_data_source_set_user_data(this->pointer, data);
+    }
+
+  public:
     enum class error : uint32_t {
       error_invalid_action_mask = 0,
       error_invalid_source = 1,
@@ -380,6 +481,17 @@ namespace wayland_client
         wl_data_device_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_data_device_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_data_device_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_data_device_set_user_data(this->pointer, data);
     }
 
   public:
@@ -419,6 +531,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_data_device_manager_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_data_device_manager_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_data_device_manager_set_user_data(this->pointer, data);
+    }
+
+  public:
     wl_data_source_t create_data_source();
     wl_data_device_t get_data_device(wl_seat* seat);
     enum class dnd_action : uint32_t {
@@ -451,6 +574,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_shell_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_shell_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_shell_set_user_data(this->pointer, data);
+    }
+
+  public:
     enum class error : uint32_t {
       error_role = 0,
     };
@@ -476,6 +610,17 @@ namespace wayland_client
         wl_shell_surface_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_shell_surface_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_shell_surface_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_shell_surface_set_user_data(this->pointer, data);
     }
 
   public:
@@ -536,6 +681,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_surface_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_surface_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_surface_set_user_data(this->pointer, data);
+    }
+
+  public:
     enum class error : uint32_t {
       error_invalid_scale = 0,
       error_invalid_transform = 1,
@@ -576,6 +732,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_seat_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_seat_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_seat_set_user_data(this->pointer, data);
+    }
+
+  public:
     enum class capability : uint32_t {
       capability_pointer = 1,
       capability_keyboard = 2,
@@ -608,6 +775,17 @@ namespace wayland_client
         wl_pointer_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_pointer_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_pointer_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_pointer_set_user_data(this->pointer, data);
     }
 
   public:
@@ -663,6 +841,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_keyboard_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_keyboard_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_keyboard_set_user_data(this->pointer, data);
+    }
+
+  public:
     enum class keymap_format : uint32_t {
       keymap_format_no_keymap = 0,
       keymap_format_xkb_v1 = 1,
@@ -702,6 +891,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_touch_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_touch_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_touch_set_user_data(this->pointer, data);
+    }
+
+  public:
     std::function<void (uint32_t, uint32_t, wl_surface*, int32_t, fixed, fixed)> down;
     std::function<void (uint32_t, uint32_t, int32_t)> up;
     std::function<void (uint32_t, int32_t, fixed, fixed)> motion;
@@ -731,6 +931,17 @@ namespace wayland_client
         wl_output_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_output_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_output_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_output_set_user_data(this->pointer, data);
     }
 
   public:
@@ -785,6 +996,17 @@ namespace wayland_client
     }
 
   public:
+    uint32_t get_version() {
+      return wl_region_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_region_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_region_set_user_data(this->pointer, data);
+    }
+
+  public:
     void destroy();
     void add(int32_t x, int32_t y, int32_t width, int32_t height);
     void subtract(int32_t x, int32_t y, int32_t width, int32_t height);
@@ -809,6 +1031,17 @@ namespace wayland_client
         wl_subcompositor_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_subcompositor_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_subcompositor_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_subcompositor_set_user_data(this->pointer, data);
     }
 
   public:
@@ -838,6 +1071,17 @@ namespace wayland_client
         wl_subsurface_destroy(this->pointer);
 	this->pointer = nullptr;
       }
+    }
+
+  public:
+    uint32_t get_version() {
+      return wl_subsurface_get_version(this->pointer);
+    }
+    void* get_user_data() {
+      return wl_subsurface_get_user_data(this->pointer);
+    }
+    void set_user_data(void* data) {
+      wl_subsurface_set_user_data(this->pointer, data);
     }
 
   public:
@@ -1110,4 +1354,4 @@ namespace wayland_client
   }
 }
 
-#endif/*INCLUDE_WAYLAND_CLIENT_HPP_D3F35307_6127_428D_8A2F_3ACDC519840C*/
+#endif/*INCLUDE_WAYLAND_CLIENT_HPP_6E8C5DC8_1FE5_40D9_95F1_FD32DE74492C*/
