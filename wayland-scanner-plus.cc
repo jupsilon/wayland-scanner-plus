@@ -3,111 +3,90 @@
 #include <string>
 #include <regex>
 #include <tuple>
-#include <algorithm>
-#include <iterator>
 
 #include <cctype>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include <uuid/uuid.h>
-
 #include "utilities/misc.hpp"
+#include "utilities/uuid.hpp"
 
-template <typename Ch>
-inline auto dump(std::basic_ostream<Ch>& output,
-		 boost::property_tree::ptree const& children,
-		 size_t level = 0)
-  -> std::basic_ostream<Ch>&
+namespace
 {
-  auto indent = [&](size_t level) -> auto& {
-    for (auto i = level; i != 0; --i) output.put(' ');
-    return output;
-  };
-  for (auto child : children) {
-    auto data = child.first.data();
-    if (0 == std::strcmp("<xmlattr>", data)) {
-      for (auto attr : child.second.get_child("")) {
-	auto label = attr.first.data();
-	auto value = child.second.get_optional<std::string>(label).get();
-	indent(level) << ":" << label << "=" << value << std::endl;
-      }
-    }
-    else {
-      indent(level) << data << std::endl;
-      auto value = child.second.get_value<std::string>();
-      if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
-	output << "{{{" << std::endl;
-	///indent(level) << value << std::endl;
-	std::istringstream stream(value);
-	while (stream) {
-	  std::string line;
-	  std::getline(stream, line);
-	  auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
-	  if (choped.empty() == false) {
-	    output << choped << std::endl;
-	  }
-	}
-	output << "}}}" << std::endl;
-      }
-      dump(output, child.second, level + 1);
-    }
+  using namespace utilities;
+
+  inline std::string subst(std::string source, std::string label, std::string value) {
+    return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
   }
-  return output;
-}
 
-inline auto concat() {
-  return std::string();
-}
-template <typename First, typename ...Rest>
-inline auto concat(First first, Rest... rest) {
-  return first + concat(rest...);
-}
+  // template <typename Ch>
+  // inline auto dump(std::basic_ostream<Ch>& output,
+  // 		   boost::property_tree::ptree const& children,
+  // 		   size_t level = 0)
+  //   -> std::basic_ostream<Ch>&
+  // {
+  //   auto indent = [&](size_t level) -> auto& {
+  //     for (auto i = level; i != 0; --i) output.put(' ');
+  //     return output;
+  //   };
+  //   for (auto child : children) {
+  //     auto data = child.first.data();
+  //     if (0 == std::strcmp("<xmlattr>", data)) {
+  // 	for (auto attr : child.second.get_child("")) {
+  // 	  auto label = attr.first.data();
+  // 	  auto value = child.second.get_optional<std::string>(label).get();
+  // 	  indent(level) << ":" << label << "=" << value << std::endl;
+  // 	}
+  //     }
+  //     else {
+  // 	indent(level) << data << std::endl;
+  // 	auto value = child.second.get_value<std::string>();
+  // 	if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
+  // 	  output << "{{{" << std::endl;
+  // 	  ///indent(level) << value << std::endl;
+  // 	  std::istringstream stream(value);
+  // 	  while (stream) {
+  // 	    std::string line;
+  // 	    std::getline(stream, line);
+  // 	    auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
+  // 	    if (choped.empty() == false) {
+  // 	      output << choped << std::endl;
+  // 	    }
+  // 	  }
+  // 	  output << "}}}" << std::endl;
+  // 	}
+  // 	dump(output, child.second, level + 1);
+  //     }
+  //   }
+  //   return output;
+  // }
 
-inline std::string chop(std::string const& value) {
-  if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
-    std::istringstream stream(value);
-    std::ostringstream output;
-    while (stream) {
-      std::string line;
-      std::getline(stream, line);
-      auto chopped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
-      if (chopped.empty() == false) {
-	output << chopped << std::endl;
-      }
-    }
-    return output.str();
+  // inline std::string chop(std::string const& value) {
+  //   if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
+  //     std::istringstream stream(value);
+  //     std::ostringstream output;
+  //     while (stream) {
+  // 	std::string line;
+  // 	std::getline(stream, line);
+  // 	auto chopped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
+  // 	if (chopped.empty() == false) {
+  // 	  output << chopped << std::endl;
+  // 	}
+  //     }
+  //     return output.str();
+  //   }
+  //   return std::string();
+  // }
+
+  inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
+    return tree.get_child("<xmlattr>").get_optional<std::string>(key) ?
+      tree.get_child("<xmlattr>").get_optional<std::string>(key).get() : "nil";
   }
-  return std::string();
-}
 
-template <size_t N = 1>
-inline std::string trim_last(std::string src) {
-  return src.substr(0, src.size() - N);
-}
-
-inline std::string upper(std::string src) {
-  std::transform(src.begin(), src.end(), src.begin(), [](auto ch) { return std::toupper(ch); });
-  return src;
-}
-
-inline std::string subst(std::string source, std::string label, std::string value) {
-  return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
-}
-
-inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
-  return tree.get_child("<xmlattr>").get_optional<std::string>(key) ?
-    tree.get_child("<xmlattr>").get_optional<std::string>(key).get() : "nil";
-}
-
-inline std::string uuid() {
-  uuid_t value; uuid_generate(value);
-
-  char buf[32] = { };
-  uuid_unparse_upper(value, buf);
-
-  return std::regex_replace(buf, std::regex("-"), "_");
+  inline std::string uuid_identifier() {
+    return std::regex_replace(utilities::uuid().to_upper_str(), std::regex("-"), "_");
+  }
 }
 
 extern std::string const client;
@@ -120,6 +99,8 @@ extern std::string const client_interface_event;
 
 int main() { 
   using boost::property_tree::ptree;
+
+  std::cerr << concat("1", "2", "3") << std::endl;
 
   try {
     //
@@ -219,8 +200,8 @@ int main() {
       }
 
       text = subst(text, "REQUEST_RESULT", request_result);
-      text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
-      text = subst(text, "REQUEST_ARGS",   trim_last<2>(request_args));
+      text = subst(text, "REQUEST_PARAMS", trim_last(request_params, 2));
+      text = subst(text, "REQUEST_ARGS",   trim_last(request_args, 2));
       text = subst(text, "INTERFACE_NAME", interface_name);
 
       {
@@ -228,8 +209,8 @@ int main() {
 
 	text = subst(text, "REQUEST_NAME",   request_name);
 	text = subst(text, "REQUEST_RESULT", request_result);
-	text = subst(text, "REQUEST_PARAMS", trim_last<2>(request_params));
-	text = subst(text, "REQUEST_ARGS",   trim_last<2>(request_args));
+	text = subst(text, "REQUEST_PARAMS", trim_last(request_params, 2));
+	text = subst(text, "REQUEST_ARGS",   trim_last(request_args, 2));
 	text = subst(text, "INTERFACE_NAME", interface_name);
 
 	implementations += text;
@@ -288,7 +269,7 @@ int main() {
 	  event_args += event_arg(child.second);
 	}
       }
-      text = subst(text, "EVENT_ARGS", trim_last<2>(event_args));
+      text = subst(text, "EVENT_ARGS", trim_last(event_args, 2));
 
       return text;
     };
@@ -339,7 +320,7 @@ int main() {
 
       text = subst(text, "PROTOCOL_NAME", protocol_name);
       text = subst(text, "CAP_PROTOCOL_NAME", upper(protocol_name));
-      text = subst(text, "UUID", uuid());
+      text = subst(text, "UUID", uuid_identifier());
 
       std::string interface_declarations;
       std::string interfaces;

@@ -8,7 +8,9 @@ set(SCANNER "wayland-scanner")
 
 add_executable(wayland-scanner-plus
   wayland-scanner-plus.cc
-  template.cc
+  wayland-scanner-plus-template.cc
+  utilities/misc.cc
+  utilities/uuid.cc
   )
 
 add_custom_target(wayland-client.hpp ALL
@@ -29,6 +31,7 @@ add_custom_command(OUTPUT weston-desktop.c weston-desktop-client.h
 add_executable(test-client
   test-client.cc
   weston-desktop.c
+  utilities/misc.cc
   )
 
 target_link_libraries(wayland-scanner-plus
@@ -37,6 +40,7 @@ target_link_libraries(wayland-scanner-plus
 
 target_link_libraries(test-client
   wayland-client
+  uuid
   )
 
 add_custom_target(run
