@@ -1,7 +1,5 @@
 
-#include <string>
-
-extern std::string const client = R"(
+char const* SRC_CLIENT = R"(
 #ifndef INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 #define INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)
 
@@ -23,7 +21,7 @@ $(IMPLEMENTATIONS)
 #endif/*INCLUDE_$(CAP_PROTOCOL_NAME)_CLIENT_HPP_$(UUID)*/
 )" + 1;
 
-extern std::string const client_interface = R"(
+char const* SRC_CLIENT_INTERFACE = R"(
   class $(INTERFACE_NAME)_t : public interface_core<$(INTERFACE_NAME), $(INTERFACE_VERSION)> {
   public:
     using core_type = interface_core<$(INTERFACE_NAME), $(INTERFACE_VERSION)>;
@@ -62,27 +60,27 @@ $(INTERFACE_MEMBERS)
   };
 )" + 1;
 
-extern std::string const client_interface_declarations = R"(
+char const* SRC_CLIENT_INTERFACE_DECLARATIONS = R"(
   class $(INTERFACE_NAME)_t;
 )" + 1;
 
-extern std::string const client_interface_enum = R"(
+char const* SRC_CLIENT_INTERFACE_ENUM = R"(
     enum class $(ENUM_NAME) : uint32_t {
 $(ENUM_ENTRIES)
     };
 )" + 1;
 
-extern std::string const client_interface_request = R"(
+char const* SRC_CLIENT_INTERFACE_REQUEST = R"(
     $(REQUEST_RESULT) $(REQUEST_NAME)($(REQUEST_PARAMS));
 )" + 1;
 
-extern std::string const client_interface_request_impl = R"(
+char const* SRC_CLIENT_INTERFACE_REQUEST_IMPL = R"(
   inline $(REQUEST_RESULT) $(INTERFACE_NAME)_t::$(REQUEST_NAME)($(REQUEST_PARAMS))
   {
     return ($(REQUEST_RESULT)) $(INTERFACE_NAME)_$(REQUEST_NAME)($(REQUEST_ARGS));
   }
 )" + 1;
 
-extern std::string const client_interface_event = R"(
+char const* SRC_CLIENT_INTERFACE_EVENT = R"(
     std::function<void ($(EVENT_ARGS))> $(EVENT_NAME);
 )" + 1;

@@ -12,95 +12,30 @@
 #include "utilities/misc.hpp"
 #include "utilities/uuid.hpp"
 
-namespace
-{
-  using namespace utilities;
+extern char const* SRC_CLIENT;
+extern char const* SRC_CLIENT_INTERFACE;
+extern char const* SRC_CLIENT_INTERFACE_DECLARATIONS;
+extern char const* SRC_CLIENT_INTERFACE_ENUM;
+extern char const* SRC_CLIENT_INTERFACE_REQUEST;
+extern char const* SRC_CLIENT_INTERFACE_REQUEST_IMPL;
+extern char const* SRC_CLIENT_INTERFACE_EVENT;
 
-  inline std::string subst(std::string source, std::string label, std::string value) {
-    return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
-  }
-
-  // template <typename Ch>
-  // inline auto dump(std::basic_ostream<Ch>& output,
-  // 		   boost::property_tree::ptree const& children,
-  // 		   size_t level = 0)
-  //   -> std::basic_ostream<Ch>&
-  // {
-  //   auto indent = [&](size_t level) -> auto& {
-  //     for (auto i = level; i != 0; --i) output.put(' ');
-  //     return output;
-  //   };
-  //   for (auto child : children) {
-  //     auto data = child.first.data();
-  //     if (0 == std::strcmp("<xmlattr>", data)) {
-  // 	for (auto attr : child.second.get_child("")) {
-  // 	  auto label = attr.first.data();
-  // 	  auto value = child.second.get_optional<std::string>(label).get();
-  // 	  indent(level) << ":" << label << "=" << value << std::endl;
-  // 	}
-  //     }
-  //     else {
-  // 	indent(level) << data << std::endl;
-  // 	auto value = child.second.get_value<std::string>();
-  // 	if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
-  // 	  output << "{{{" << std::endl;
-  // 	  ///indent(level) << value << std::endl;
-  // 	  std::istringstream stream(value);
-  // 	  while (stream) {
-  // 	    std::string line;
-  // 	    std::getline(stream, line);
-  // 	    auto choped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
-  // 	    if (choped.empty() == false) {
-  // 	      output << choped << std::endl;
-  // 	    }
-  // 	  }
-  // 	  output << "}}}" << std::endl;
-  // 	}
-  // 	dump(output, child.second, level + 1);
-  //     }
-  //   }
-  //   return output;
-  // }
-
-  // inline std::string chop(std::string const& value) {
-  //   if (!std::regex_match(value, std::regex("^[ \t\n]*$"))) {
-  //     std::istringstream stream(value);
-  //     std::ostringstream output;
-  //     while (stream) {
-  // 	std::string line;
-  // 	std::getline(stream, line);
-  // 	auto chopped = std::regex_replace(line, std::regex("^[ \t]*(.*)$"), "$1");
-  // 	if (chopped.empty() == false) {
-  // 	  output << chopped << std::endl;
-  // 	}
-  //     }
-  //     return output.str();
-  //   }
-  //   return std::string();
-  // }
-
-  inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
-    return tree.get_child("<xmlattr>").get_optional<std::string>(key) ?
-      tree.get_child("<xmlattr>").get_optional<std::string>(key).get() : "nil";
-  }
-
-  inline std::string uuid_identifier() {
-    return std::regex_replace(utilities::uuid().to_upper_str(), std::regex("-"), "_");
-  }
+inline std::string subst(std::string source, std::string label, std::string value) {
+  return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
 }
 
-extern std::string const client;
-extern std::string const client_interface;
-extern std::string const client_interface_declarations;
-extern std::string const client_interface_enum;
-extern std::string const client_interface_request;
-extern std::string const client_interface_request_impl;
-extern std::string const client_interface_event;
+inline std::string attr(boost::property_tree::ptree const& tree, char const* key) {
+  return tree.get_child("<xmlattr>").get_optional<std::string>(key) ?
+    tree.get_child("<xmlattr>").get_optional<std::string>(key).get() : "nil";
+}
+
+inline std::string uuid_identifier() {
+  return std::regex_replace(utilities::uuid().to_upper_str(), std::regex("-"), "_");
+}
 
 int main() { 
   using boost::property_tree::ptree;
-
-  std::cerr << concat("1", "2", "3") << std::endl;
+  using namespace utilities;
 
   try {
     //
@@ -115,7 +50,7 @@ int main() {
     };
 
     static auto enumeration = [](ptree const& tree) {
-      auto text = client_interface_enum;
+      std::string text = SRC_CLIENT_INTERFACE_ENUM;
       auto enum_name = attr(tree, "name");
 
       text = subst(text, "ENUM_NAME", enum_name);
@@ -169,7 +104,7 @@ int main() {
     static std::string implementations;
 
     static auto request = [](ptree const& tree, std::string interface_name) {
-      auto text = client_interface_request;
+      std::string text = SRC_CLIENT_INTERFACE_REQUEST;
       auto request_name = attr(tree, "name");
 
       text = subst(text, "REQUEST_NAME", request_name);
@@ -205,7 +140,7 @@ int main() {
       text = subst(text, "INTERFACE_NAME", interface_name);
 
       {
-	std::string text = client_interface_request_impl;
+	std::string text = SRC_CLIENT_INTERFACE_REQUEST_IMPL;
 
 	text = subst(text, "REQUEST_NAME",   request_name);
 	text = subst(text, "REQUEST_RESULT", request_result);
@@ -258,7 +193,7 @@ int main() {
     };
 
     static auto event = [](ptree const& tree) {
-      auto text = client_interface_event;
+      std::string text = SRC_CLIENT_INTERFACE_EVENT;
       auto event_name = attr(tree, "name");
 
       text = subst(text, "EVENT_NAME", event_name);
@@ -277,7 +212,7 @@ int main() {
     static std::string declarations;
     
     static auto interface = [](ptree const& tree) {
-      auto text = client_interface;
+      std::string text = SRC_CLIENT_INTERFACE;
       auto interface_name    = attr(tree, "name");
       auto interface_version = attr(tree, "version");
 
@@ -308,14 +243,14 @@ int main() {
     };
 
     static auto interface_declaration = [](ptree const& tree) {
-      std::string text = client_interface_declarations;
+      std::string text = SRC_CLIENT_INTERFACE_DECLARATIONS;
       auto interface_name = attr(tree, "name");
       text = subst(text, "INTERFACE_NAME", interface_name);
       return text;
     };
 
     static auto protocol = [](ptree const& tree) {
-      auto text = client;
+      std::string text = SRC_CLIENT;
       auto protocol_name = attr(tree, "name");
 
       text = subst(text, "PROTOCOL_NAME", protocol_name);
