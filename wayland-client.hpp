@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WAYLAND_CLIENT_HPP_DA21B6C8_E9F0_442E_9F89_4CE7DDAFA964
-#define INCLUDE_WAYLAND_CLIENT_HPP_DA21B6C8_E9F0_442E_9F89_4CE7DDAFA964
+#ifndef INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC
+#define INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC
 
 #include <functional>
 
@@ -68,13 +68,36 @@ namespace wayland_client
   public:
     wl_callback_t sync();
     wl_registry_t get_registry();
-    std::function<void (void*, uint32_t, char const*)> error;
+    std::function<void (void*, wl_display*, void*, uint32_t, char const*)> error;
     enum class error : uint32_t {
       error_invalid_object = 0,
       error_invalid_method = 1,
       error_no_memory = 2,
     };
-    std::function<void (uint32_t)> delete_id;
+    std::function<void (void*, wl_display*, uint32_t)> delete_id;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_display_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_display_t*>(data);
+          std::cerr << "error fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->error(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_display_t*>(data);
+          std::cerr << "delete_id fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->delete_id(data, args...);
+        },
+      };
+      wl_display_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_display_listener listener;
   };
   class wl_registry_t : public interface_core<wl_registry, 1> {
   public:
@@ -111,8 +134,31 @@ namespace wayland_client
 
   public:
     void* bind(uint32_t name, wl_interface const* interface, uint32_t version);
-    std::function<void (uint32_t, char const*, uint32_t)> global;
-    std::function<void (uint32_t)> global_remove;
+    std::function<void (void*, wl_registry*, uint32_t, char const*, uint32_t)> global;
+    std::function<void (void*, wl_registry*, uint32_t)> global_remove;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_registry_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_registry_t*>(data);
+          std::cerr << "global fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->global(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_registry_t*>(data);
+          std::cerr << "global_remove fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->global_remove(data, args...);
+        },
+      };
+      wl_registry_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_registry_listener listener;
   };
   class wl_callback_t : public interface_core<wl_callback, 1> {
   public:
@@ -148,7 +194,24 @@ namespace wayland_client
     }
 
   public:
-    std::function<void (uint32_t)> done;
+    std::function<void (void*, wl_callback*, uint32_t)> done;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_callback_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_callback_t*>(data);
+          std::cerr << "done fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->done(data, args...);
+        },
+      };
+      wl_callback_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_callback_listener listener;
   };
   class wl_compositor_t : public interface_core<wl_compositor, 4> {
   public:
@@ -325,7 +388,24 @@ namespace wayland_client
       format_yvu444 = 0X34325659,
     };
     wl_shm_pool_t create_pool(int fd, int32_t size);
-    std::function<void (uint32_t)> format;
+    std::function<void (void*, wl_shm*, uint32_t)> format;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_shm_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_shm_t*>(data);
+          std::cerr << "format fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->format(data, args...);
+        },
+      };
+      wl_shm_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_shm_listener listener;
   };
   class wl_buffer_t : public interface_core<wl_buffer, 1> {
   public:
@@ -362,7 +442,24 @@ namespace wayland_client
 
   public:
     void destroy();
-    std::function<void ()> release;
+    std::function<void (void*, wl_buffer*)> release;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_buffer_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_buffer_t*>(data);
+          std::cerr << "release fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->release(data, args...);
+        },
+      };
+      wl_buffer_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_buffer_listener listener;
   };
   class wl_data_offer_t : public interface_core<wl_data_offer, 3> {
   public:
@@ -407,11 +504,40 @@ namespace wayland_client
     void accept(uint32_t serial, char const* mime_type);
     void receive(char const* mime_type, int fd);
     void destroy();
-    std::function<void (char const*)> offer;
+    std::function<void (void*, wl_data_offer*, char const*)> offer;
     void finish();
     void set_actions(uint32_t dnd_actions, uint32_t preferred_action);
-    std::function<void (uint32_t)> source_actions;
-    std::function<void (uint32_t)> action;
+    std::function<void (void*, wl_data_offer*, uint32_t)> source_actions;
+    std::function<void (void*, wl_data_offer*, uint32_t)> action;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_data_offer_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_offer_t*>(data);
+          std::cerr << "offer fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->offer(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_offer_t*>(data);
+          std::cerr << "source_actions fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->source_actions(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_offer_t*>(data);
+          std::cerr << "action fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->action(data, args...);
+        },
+      };
+      wl_data_offer_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_data_offer_listener listener;
   };
   class wl_data_source_t : public interface_core<wl_data_source, 3> {
   public:
@@ -453,13 +579,60 @@ namespace wayland_client
     };
     void offer(char const* mime_type);
     void destroy();
-    std::function<void (char const*)> target;
-    std::function<void (char const*, int)> send;
-    std::function<void ()> cancelled;
+    std::function<void (void*, wl_data_source*, char const*)> target;
+    std::function<void (void*, wl_data_source*, char const*, int)> send;
+    std::function<void (void*, wl_data_source*)> cancelled;
     void set_actions(uint32_t dnd_actions);
-    std::function<void ()> dnd_drop_performed;
-    std::function<void ()> dnd_finished;
-    std::function<void (uint32_t)> action;
+    std::function<void (void*, wl_data_source*)> dnd_drop_performed;
+    std::function<void (void*, wl_data_source*)> dnd_finished;
+    std::function<void (void*, wl_data_source*, uint32_t)> action;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_data_source_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "target fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->target(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "send fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->send(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "cancelled fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->cancelled(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "dnd_drop_performed fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->dnd_drop_performed(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "dnd_finished fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->dnd_finished(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_source_t*>(data);
+          std::cerr << "action fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->action(data, args...);
+        },
+      };
+      wl_data_source_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_data_source_listener listener;
   };
   class wl_data_device_t : public interface_core<wl_data_device, 3> {
   public:
@@ -500,13 +673,60 @@ namespace wayland_client
     };
     void start_drag(wl_data_source* source, wl_surface* origin, wl_surface* icon, uint32_t serial);
     void set_selection(wl_data_source* source, uint32_t serial);
-    std::function<void ()> data_offer;
-    std::function<void (uint32_t, wl_surface*, fixed, fixed, wl_data_offer*)> enter;
-    std::function<void ()> leave;
-    std::function<void (uint32_t, fixed, fixed)> motion;
-    std::function<void ()> drop;
-    std::function<void (wl_data_offer*)> selection;
+    std::function<void (void*, wl_data_device*, wl_data_offer*)> data_offer;
+    std::function<void (void*, wl_data_device*, uint32_t, wl_surface*, wl_fixed_t, wl_fixed_t, wl_data_offer*)> enter;
+    std::function<void (void*, wl_data_device*)> leave;
+    std::function<void (void*, wl_data_device*, uint32_t, wl_fixed_t, wl_fixed_t)> motion;
+    std::function<void (void*, wl_data_device*)> drop;
+    std::function<void (void*, wl_data_device*, wl_data_offer*)> selection;
     void release();
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_data_device_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "data_offer fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->data_offer(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "enter fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->enter(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "leave fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->leave(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "motion fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->motion(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "drop fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->drop(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_data_device_t*>(data);
+          std::cerr << "selection fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->selection(data, args...);
+        },
+      };
+      wl_data_device_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_data_device_listener listener;
   };
   class wl_data_device_manager_t : public interface_core<wl_data_device_manager, 3> {
   public:
@@ -654,9 +874,38 @@ namespace wayland_client
     void set_maximized(wl_output* output);
     void set_title(char const* title);
     void set_class(char const* class_);
-    std::function<void (uint32_t)> ping;
-    std::function<void (uint32_t, int32_t, int32_t)> configure;
-    std::function<void ()> popup_done;
+    std::function<void (void*, wl_shell_surface*, uint32_t)> ping;
+    std::function<void (void*, wl_shell_surface*, uint32_t, int32_t, int32_t)> configure;
+    std::function<void (void*, wl_shell_surface*)> popup_done;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_shell_surface_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_shell_surface_t*>(data);
+          std::cerr << "ping fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->ping(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_shell_surface_t*>(data);
+          std::cerr << "configure fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->configure(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_shell_surface_t*>(data);
+          std::cerr << "popup_done fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->popup_done(data, args...);
+        },
+      };
+      wl_shell_surface_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_shell_surface_listener listener;
   };
   class wl_surface_t : public interface_core<wl_surface, 4> {
   public:
@@ -703,11 +952,34 @@ namespace wayland_client
     void set_opaque_region(wl_region* region);
     void set_input_region(wl_region* region);
     void commit();
-    std::function<void (wl_output*)> enter;
-    std::function<void (wl_output*)> leave;
+    std::function<void (void*, wl_surface*, wl_output*)> enter;
+    std::function<void (void*, wl_surface*, wl_output*)> leave;
     void set_buffer_transform(int32_t transform);
     void set_buffer_scale(int32_t scale);
     void damage_buffer(int32_t x, int32_t y, int32_t width, int32_t height);
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_surface_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_surface_t*>(data);
+          std::cerr << "enter fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->enter(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_surface_t*>(data);
+          std::cerr << "leave fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->leave(data, args...);
+        },
+      };
+      wl_surface_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_surface_listener listener;
   };
   class wl_seat_t : public interface_core<wl_seat, 6> {
   public:
@@ -748,12 +1020,35 @@ namespace wayland_client
       capability_keyboard = 2,
       capability_touch = 4,
     };
-    std::function<void (uint32_t)> capabilities;
+    std::function<void (void*, wl_seat*, uint32_t)> capabilities;
     wl_pointer_t get_pointer();
     wl_keyboard_t get_keyboard();
     wl_touch_t get_touch();
-    std::function<void (char const*)> name;
+    std::function<void (void*, wl_seat*, char const*)> name;
     void release();
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_seat_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_seat_t*>(data);
+          std::cerr << "capabilities fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->capabilities(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_seat_t*>(data);
+          std::cerr << "name fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->name(data, args...);
+        },
+      };
+      wl_seat_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_seat_listener listener;
   };
   class wl_pointer_t : public interface_core<wl_pointer, 6> {
   public:
@@ -793,30 +1088,95 @@ namespace wayland_client
       error_role = 0,
     };
     void set_cursor(uint32_t serial, wl_surface* surface, int32_t hotspot_x, int32_t hotspot_y);
-    std::function<void (uint32_t, wl_surface*, fixed, fixed)> enter;
-    std::function<void (uint32_t, wl_surface*)> leave;
-    std::function<void (uint32_t, fixed, fixed)> motion;
+    std::function<void (void*, wl_pointer*, uint32_t, wl_surface*, wl_fixed_t, wl_fixed_t)> enter;
+    std::function<void (void*, wl_pointer*, uint32_t, wl_surface*)> leave;
+    std::function<void (void*, wl_pointer*, uint32_t, wl_fixed_t, wl_fixed_t)> motion;
     enum class button_state : uint32_t {
       button_state_released = 0,
       button_state_pressed = 1,
     };
-    std::function<void (uint32_t, uint32_t, uint32_t, uint32_t)> button;
+    std::function<void (void*, wl_pointer*, uint32_t, uint32_t, uint32_t, uint32_t)> button;
     enum class axis : uint32_t {
       axis_vertical_scroll = 0,
       axis_horizontal_scroll = 1,
     };
-    std::function<void (uint32_t, uint32_t, fixed)> axis;
+    std::function<void (void*, wl_pointer*, uint32_t, uint32_t, wl_fixed_t)> axis;
     void release();
-    std::function<void ()> frame;
+    std::function<void (void*, wl_pointer*)> frame;
     enum class axis_source : uint32_t {
       axis_source_wheel = 0,
       axis_source_finger = 1,
       axis_source_continuous = 2,
       axis_source_wheel_tilt = 3,
     };
-    std::function<void (uint32_t)> axis_source;
-    std::function<void (uint32_t, uint32_t)> axis_stop;
-    std::function<void (uint32_t, int32_t)> axis_discrete;
+    std::function<void (void*, wl_pointer*, uint32_t)> axis_source;
+    std::function<void (void*, wl_pointer*, uint32_t, uint32_t)> axis_stop;
+    std::function<void (void*, wl_pointer*, uint32_t, int32_t)> axis_discrete;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_pointer_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "enter fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->enter(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "leave fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->leave(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "motion fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->motion(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "button fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->button(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "axis fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->axis(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "frame fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->frame(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "axis_source fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->axis_source(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "axis_stop fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->axis_stop(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_pointer_t*>(data);
+          std::cerr << "axis_discrete fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->axis_discrete(data, args...);
+        },
+      };
+      wl_pointer_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_pointer_listener listener;
   };
   class wl_keyboard_t : public interface_core<wl_keyboard, 6> {
   public:
@@ -856,17 +1216,64 @@ namespace wayland_client
       keymap_format_no_keymap = 0,
       keymap_format_xkb_v1 = 1,
     };
-    std::function<void (uint32_t, int, uint32_t)> keymap;
-    std::function<void (uint32_t, wl_surface*, chunk)> enter;
-    std::function<void (uint32_t, wl_surface*)> leave;
+    std::function<void (void*, wl_keyboard*, uint32_t, int, uint32_t)> keymap;
+    std::function<void (void*, wl_keyboard*, uint32_t, wl_surface*, wl_array*)> enter;
+    std::function<void (void*, wl_keyboard*, uint32_t, wl_surface*)> leave;
     enum class key_state : uint32_t {
       key_state_released = 0,
       key_state_pressed = 1,
     };
-    std::function<void (uint32_t, uint32_t, uint32_t, uint32_t)> key;
-    std::function<void (uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> modifiers;
+    std::function<void (void*, wl_keyboard*, uint32_t, uint32_t, uint32_t, uint32_t)> key;
+    std::function<void (void*, wl_keyboard*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t)> modifiers;
     void release();
-    std::function<void (int32_t, int32_t)> repeat_info;
+    std::function<void (void*, wl_keyboard*, int32_t, int32_t)> repeat_info;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_keyboard_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "keymap fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->keymap(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "enter fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->enter(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "leave fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->leave(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "key fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->key(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "modifiers fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->modifiers(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_keyboard_t*>(data);
+          std::cerr << "repeat_info fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->repeat_info(data, args...);
+        },
+      };
+      wl_keyboard_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_keyboard_listener listener;
   };
   class wl_touch_t : public interface_core<wl_touch, 6> {
   public:
@@ -902,14 +1309,67 @@ namespace wayland_client
     }
 
   public:
-    std::function<void (uint32_t, uint32_t, wl_surface*, int32_t, fixed, fixed)> down;
-    std::function<void (uint32_t, uint32_t, int32_t)> up;
-    std::function<void (uint32_t, int32_t, fixed, fixed)> motion;
-    std::function<void ()> frame;
-    std::function<void ()> cancel;
+    std::function<void (void*, wl_touch*, uint32_t, uint32_t, wl_surface*, int32_t, wl_fixed_t, wl_fixed_t)> down;
+    std::function<void (void*, wl_touch*, uint32_t, uint32_t, int32_t)> up;
+    std::function<void (void*, wl_touch*, uint32_t, int32_t, wl_fixed_t, wl_fixed_t)> motion;
+    std::function<void (void*, wl_touch*)> frame;
+    std::function<void (void*, wl_touch*)> cancel;
     void release();
-    std::function<void (int32_t, fixed, fixed)> shape;
-    std::function<void (int32_t, fixed)> orientation;
+    std::function<void (void*, wl_touch*, int32_t, wl_fixed_t, wl_fixed_t)> shape;
+    std::function<void (void*, wl_touch*, int32_t, wl_fixed_t)> orientation;
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_touch_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "down fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->down(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "up fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->up(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "motion fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->motion(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "frame fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->frame(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "cancel fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->cancel(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "shape fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->shape(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_touch_t*>(data);
+          std::cerr << "orientation fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->orientation(data, args...);
+        },
+      };
+      wl_touch_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_touch_listener listener;
   };
   class wl_output_t : public interface_core<wl_output, 3> {
   public:
@@ -963,15 +1423,50 @@ namespace wayland_client
       transform_flipped_180 = 6,
       transform_flipped_270 = 7,
     };
-    std::function<void (int32_t, int32_t, int32_t, int32_t, int32_t, char const*, char const*, int32_t)> geometry;
+    std::function<void (void*, wl_output*, int32_t, int32_t, int32_t, int32_t, int32_t, char const*, char const*, int32_t)> geometry;
     enum class mode : uint32_t {
       mode_current = 0X1,
       mode_preferred = 0X2,
     };
-    std::function<void (uint32_t, int32_t, int32_t, int32_t)> mode;
-    std::function<void ()> done;
-    std::function<void (int32_t)> scale;
+    std::function<void (void*, wl_output*, uint32_t, int32_t, int32_t, int32_t)> mode;
+    std::function<void (void*, wl_output*)> done;
+    std::function<void (void*, wl_output*, int32_t)> scale;
     void release();
+
+  public:
+    void connect(void* userdata) {
+      listener = wl_output_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_output_t*>(data);
+          std::cerr << "geometry fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->geometry(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_output_t*>(data);
+          std::cerr << "mode fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->mode(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_output_t*>(data);
+          std::cerr << "done fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->done(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<wl_output_t*>(data);
+          std::cerr << "scale fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->scale(data, args...);
+        },
+      };
+      wl_output_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    wl_output_listener listener;
   };
   class wl_region_t : public interface_core<wl_region, 1> {
   public:
@@ -1354,4 +1849,4 @@ namespace wayland_client
   }
 }
 
-#endif/*INCLUDE_WAYLAND_CLIENT_HPP_DA21B6C8_E9F0_442E_9F89_4CE7DDAFA964*/
+#endif/*INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC*/

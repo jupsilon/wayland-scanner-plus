@@ -19,6 +19,8 @@ extern char const* SRC_CLIENT_INTERFACE_ENUM;
 extern char const* SRC_CLIENT_INTERFACE_REQUEST;
 extern char const* SRC_CLIENT_INTERFACE_REQUEST_IMPL;
 extern char const* SRC_CLIENT_INTERFACE_EVENT;
+extern char const* SRC_CLIENT_INTERFACE_LISTENER;
+extern char const* SRC_CLIENT_INTERFACE_EVENT_CONNECTOR;
 
 inline std::string subst(std::string source, std::string label, std::string value) {
   return std::regex_replace(source, std::regex("\\$\\(" + label + "\\)"), value);
@@ -154,11 +156,12 @@ int main() {
       return text;
     };
 
-    static auto event_arg = [](ptree const& tree) {
+    static auto event_type_arg = [](ptree const& tree) {
       auto arg_type = attr(tree, "type");
 
       if ("new_id" == arg_type) {
-	return std::string();
+	auto interface = attr(tree, "interface");
+	arg_type = interface + "*";
       }
       else if ("object" == arg_type) {
 	auto interface = attr(tree, "interface");
@@ -180,32 +183,43 @@ int main() {
 	arg_type = "int";
       }
       else if ("fixed" == arg_type) {
-	arg_type = "fixed";
+	arg_type = "wl_fixed_t";
       }
       else if ("array" == arg_type) {
-	arg_type = "chunk";
+	arg_type = "wl_array*";
       }
       else {
-	std::cerr << "----------" << arg_type << std::endl;
 	assert(!"not supported.");
       }
       return arg_type + ", ";
     };
 
-    static auto event = [](ptree const& tree) {
+    static auto event = [](ptree const& tree, std::string interface_name) {
       std::string text = SRC_CLIENT_INTERFACE_EVENT;
       auto event_name = attr(tree, "name");
 
       text = subst(text, "EVENT_NAME", event_name);
 
-      std::string event_args;
+      std::string event_type_args;
+
+      event_type_args += "void*, ";
+      event_type_args += concat(interface_name, "*, ");
+
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "arg")) {
-	  event_args += event_arg(child.second);
+	  event_type_args += event_type_arg(child.second);
 	}
       }
-      text = subst(text, "EVENT_ARGS", trim_last(event_args, 2));
+      text = subst(text, "EVENT_TYPE_ARGS", trim_last(event_type_args, 2));
 
+      return text;
+    };
+
+    static auto event_connector = [](ptree const& tree, std::string interface_name) {
+      std::string text = SRC_CLIENT_INTERFACE_EVENT_CONNECTOR;
+      auto event_name = attr(tree, "name");
+      text = subst(text, "EVENT_NAME", event_name);
+      text = subst(text, "INTERFACE_NAME", interface_name);
       return text;
     };
 
@@ -226,6 +240,7 @@ int main() {
       }
 
       std::string interface_members;
+      size_t event_count = 0;
       for (auto const& child : tree.get_child("")) {
 	if (0 == std::strcmp(child.first.data(), "enum")) {
 	  interface_members += enumeration(child.second);
@@ -234,9 +249,25 @@ int main() {
 	  interface_members += request(child.second, interface_name);
 	}
 	else if (0 == std::strcmp(child.first.data(), "event")) {
-	  interface_members += event(child.second);
+	  ++event_count;
+	  interface_members += event(child.second, interface_name);
 	}
       }
+
+      if (event_count) {
+	std::string text = SRC_CLIENT_INTERFACE_LISTENER;
+
+	std::string event_connectors;
+	for (auto const& child :tree.get_child("")) {
+	  if (0 == std::strcmp(child.first.data(), "event")) {
+	    event_connectors += event_connector(child.second, interface_name);
+	  }
+	}
+	text = subst(text, "EVENT_CONNECTORS", trim_last(event_connectors));
+	text = subst(text, "INTERFACE_NAME", interface_name);
+	interface_members += text;
+      }
+
       text = subst(text, "INTERFACE_MEMBERS", trim_last(interface_members));
 
       return text;

@@ -82,5 +82,29 @@ char const* SRC_CLIENT_INTERFACE_REQUEST_IMPL = R"(
 )" + 1;
 
 char const* SRC_CLIENT_INTERFACE_EVENT = R"(
-    std::function<void ($(EVENT_ARGS))> $(EVENT_NAME);
+    std::function<void ($(EVENT_TYPE_ARGS))> $(EVENT_NAME);
+)" + 1;
+
+char const* SRC_CLIENT_INTERFACE_LISTENER = R"(
+
+  public:
+    void connect(void* userdata) {
+      listener = $(INTERFACE_NAME)_listener 
+      {
+$(EVENT_CONNECTORS)
+      };
+      $(INTERFACE_NAME)_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    $(INTERFACE_NAME)_listener listener;
+)" + 1;
+
+char const* SRC_CLIENT_INTERFACE_EVENT_CONNECTOR = R"(
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<$(INTERFACE_NAME)_t*>(data);
+          std::cerr << "$(EVENT_NAME) fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->$(EVENT_NAME)(data, args...);
+        },
 )" + 1;

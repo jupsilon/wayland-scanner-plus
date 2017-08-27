@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_7F070C0A_7C20_4956_92DD_A37A21DC4186
-#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_7F070C0A_7C20_4956_92DD_A37A21DC4186
+#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D
+#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D
 
 #include <functional>
 
@@ -51,9 +51,9 @@ namespace weston_desktop_client
     void set_lock_surface(wl_surface* surface);
     void unlock();
     void set_grab_surface(wl_surface* surface);
-    std::function<void (uint32_t, wl_surface*, int32_t, int32_t)> configure;
-    std::function<void ()> prepare_lock_surface;
-    std::function<void (uint32_t)> grab_cursor;
+    std::function<void (void*, weston_desktop_shell*, uint32_t, wl_surface*, int32_t, int32_t)> configure;
+    std::function<void (void*, weston_desktop_shell*)> prepare_lock_surface;
+    std::function<void (void*, weston_desktop_shell*, uint32_t)> grab_cursor;
     enum class cursor : uint32_t {
       cursor_none = 0,
       cursor_resize_top = 1,
@@ -79,6 +79,35 @@ namespace weston_desktop_client
       error_invalid_argument = 0,
     };
     void set_panel_position(uint32_t position);
+
+  public:
+    void connect(void* userdata) {
+      listener = weston_desktop_shell_listener 
+      {
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
+          std::cerr << "configure fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->configure(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
+          std::cerr << "prepare_lock_surface fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->prepare_lock_surface(data, args...);
+        },
+        [](void* data, auto... args) {
+          auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
+          std::cerr << "grab_cursor fired..." << self << std::endl;
+          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
+          return self->grab_cursor(data, args...);
+        },
+      };
+      weston_desktop_shell_add_listener(this->pointer, &this->listener, static_cast<void*>(this));
+    }
+
+  private:
+    weston_desktop_shell_listener listener;
   };
   class weston_screensaver_t : public interface_core<weston_screensaver, 1> {
   public:
@@ -151,4 +180,4 @@ namespace weston_desktop_client
   }
 }
 
-#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_7F070C0A_7C20_4956_92DD_A37A21DC4186*/
+#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D*/

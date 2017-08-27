@@ -23,8 +23,8 @@ add_custom_target(weston-desktop-hpp ALL
   DEPENDS wayland-scanner-plus
   )
 
-add_custom_command(OUTPUT weston-desktop.c weston-desktop-client.h 
-  COMMAND wayland-scanner code          < weston-desktop-shell.xml > weston-desktop.c
+add_custom_command(OUTPUT ../weston-desktop.c
+  COMMAND wayland-scanner code          < weston-desktop-shell.xml > ../weston-desktop.c
   COMMAND wayland-scanner client-header < weston-desktop-shell.xml > ../weston-desktop-client.h
 )
 
@@ -40,7 +40,10 @@ target_link_libraries(wayland-scanner-plus
 
 target_link_libraries(test-client
   wayland-client
+  wayland-egl
   uuid
+  EGL
+  GL
   )
 
 add_custom_target(run
