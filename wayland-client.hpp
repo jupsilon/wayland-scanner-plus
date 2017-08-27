@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC
-#define INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC
+#ifndef INCLUDE_WAYLAND_CLIENT_HPP_1CE2AE57_E657_4961_8045_A76230744D5E
+#define INCLUDE_WAYLAND_CLIENT_HPP_1CE2AE57_E657_4961_8045_A76230744D5E
 
 #include <functional>
 
@@ -82,14 +82,10 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_display_t*>(data);
-          std::cerr << "error fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->error(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_display_t*>(data);
-          std::cerr << "delete_id fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->delete_id(data, args...);
         },
       };
@@ -143,14 +139,10 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_registry_t*>(data);
-          std::cerr << "global fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->global(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_registry_t*>(data);
-          std::cerr << "global_remove fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->global_remove(data, args...);
         },
       };
@@ -202,8 +194,6 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_callback_t*>(data);
-          std::cerr << "done fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->done(data, args...);
         },
       };
@@ -396,8 +386,6 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_shm_t*>(data);
-          std::cerr << "format fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->format(data, args...);
         },
       };
@@ -450,8 +438,6 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_buffer_t*>(data);
-          std::cerr << "release fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->release(data, args...);
         },
       };
@@ -516,20 +502,14 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_offer_t*>(data);
-          std::cerr << "offer fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->offer(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_offer_t*>(data);
-          std::cerr << "source_actions fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->source_actions(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_offer_t*>(data);
-          std::cerr << "action fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->action(data, args...);
         },
       };
@@ -593,38 +573,26 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "target fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->target(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "send fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->send(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "cancelled fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->cancelled(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "dnd_drop_performed fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->dnd_drop_performed(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "dnd_finished fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->dnd_finished(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_source_t*>(data);
-          std::cerr << "action fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->action(data, args...);
         },
       };
@@ -687,38 +655,26 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "data_offer fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->data_offer(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "enter fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->enter(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "leave fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->leave(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "motion fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->motion(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "drop fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->drop(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_data_device_t*>(data);
-          std::cerr << "selection fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->selection(data, args...);
         },
       };
@@ -884,20 +840,14 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_shell_surface_t*>(data);
-          std::cerr << "ping fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->ping(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_shell_surface_t*>(data);
-          std::cerr << "configure fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->configure(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_shell_surface_t*>(data);
-          std::cerr << "popup_done fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->popup_done(data, args...);
         },
       };
@@ -964,14 +914,10 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_surface_t*>(data);
-          std::cerr << "enter fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->enter(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_surface_t*>(data);
-          std::cerr << "leave fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->leave(data, args...);
         },
       };
@@ -1033,14 +979,10 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_seat_t*>(data);
-          std::cerr << "capabilities fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->capabilities(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_seat_t*>(data);
-          std::cerr << "name fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->name(data, args...);
         },
       };
@@ -1119,56 +1061,38 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "enter fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->enter(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "leave fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->leave(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "motion fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->motion(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "button fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->button(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "axis fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->axis(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "frame fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->frame(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "axis_source fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->axis_source(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "axis_stop fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->axis_stop(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_pointer_t*>(data);
-          std::cerr << "axis_discrete fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->axis_discrete(data, args...);
         },
       };
@@ -1234,38 +1158,26 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "keymap fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->keymap(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "enter fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->enter(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "leave fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->leave(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "key fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->key(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "modifiers fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->modifiers(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_keyboard_t*>(data);
-          std::cerr << "repeat_info fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->repeat_info(data, args...);
         },
       };
@@ -1324,44 +1236,30 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "down fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->down(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "up fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->up(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "motion fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->motion(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "frame fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->frame(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "cancel fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->cancel(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "shape fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->shape(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_touch_t*>(data);
-          std::cerr << "orientation fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->orientation(data, args...);
         },
       };
@@ -1439,26 +1337,18 @@ namespace wayland_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_output_t*>(data);
-          std::cerr << "geometry fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->geometry(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_output_t*>(data);
-          std::cerr << "mode fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->mode(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_output_t*>(data);
-          std::cerr << "done fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->done(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<wl_output_t*>(data);
-          std::cerr << "scale fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->scale(data, args...);
         },
       };
@@ -1849,4 +1739,4 @@ namespace wayland_client
   }
 }
 
-#endif/*INCLUDE_WAYLAND_CLIENT_HPP_54789E58_D474_49B9_A7AB_FD13B63790EC*/
+#endif/*INCLUDE_WAYLAND_CLIENT_HPP_1CE2AE57_E657_4961_8045_A76230744D5E*/

@@ -103,8 +103,6 @@ $(EVENT_CONNECTORS)
 char const* SRC_CLIENT_INTERFACE_EVENT_CONNECTOR = R"(
         [](void* data, auto... args) {
           auto self = reinterpret_cast<$(INTERFACE_NAME)_t*>(data);
-          std::cerr << "$(EVENT_NAME) fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->$(EVENT_NAME)(data, args...);
         },
 )" + 1;

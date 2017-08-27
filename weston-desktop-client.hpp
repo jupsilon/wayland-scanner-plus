@@ -1,5 +1,5 @@
-#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D
-#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D
+#ifndef INCLUDE_WESTON_DESKTOP_CLIENT_HPP_901490F6_9BEC_4D72_B56C_8543DB755AC9
+#define INCLUDE_WESTON_DESKTOP_CLIENT_HPP_901490F6_9BEC_4D72_B56C_8543DB755AC9
 
 #include <functional>
 
@@ -86,20 +86,14 @@ namespace weston_desktop_client
       {
         [](void* data, auto... args) {
           auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
-          std::cerr << "configure fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->configure(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
-          std::cerr << "prepare_lock_surface fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->prepare_lock_surface(data, args...);
         },
         [](void* data, auto... args) {
           auto self = reinterpret_cast<weston_desktop_shell_t*>(data);
-          std::cerr << "grab_cursor fired..." << self << std::endl;
-          std::cerr << "  " << utilities::demangled_id<decltype (std::make_tuple(args...))> << std::endl;
           return self->grab_cursor(data, args...);
         },
       };
@@ -180,4 +174,4 @@ namespace weston_desktop_client
   }
 }
 
-#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_B88E3A9F_02E6_4000_92FD_1FB7B6E3D96D*/
+#endif/*INCLUDE_WESTON_DESKTOP_CLIENT_HPP_901490F6_9BEC_4D72_B56C_8543DB755AC9*/

@@ -26,6 +26,7 @@ add_custom_target(weston-desktop-hpp ALL
 add_custom_command(OUTPUT ../weston-desktop.c
   COMMAND wayland-scanner code          < weston-desktop-shell.xml > ../weston-desktop.c
   COMMAND wayland-scanner client-header < weston-desktop-shell.xml > ../weston-desktop-client.h
+  COMMAND wayland-scanner server-header < weston-desktop-shell.xml > ../weston-desktop-server.h
 )
 
 add_executable(test-client
